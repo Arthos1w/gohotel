@@ -68,3 +68,4 @@ func (b *Booking) CanCancel() bool {
 func (b *Booking) CanCheckIn() bool {
 	return b.Status == "confirmed" && b.IsPaid()
 }
+

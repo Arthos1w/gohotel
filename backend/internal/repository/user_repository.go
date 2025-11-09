@@ -92,3 +92,4 @@ func (r *UserRepository) FindAll(page, pageSize int) ([]models.User, int64, erro
 	err := r.db.Offset(offset).Limit(pageSize).Find(&users).Error
 	return users, total, err
 }
+

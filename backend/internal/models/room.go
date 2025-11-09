@@ -41,3 +41,4 @@ func (r *Room) GetDiscountRate() float64 {
 	}
 	return (r.OriginalPrice - r.Price) / r.OriginalPrice * 100
 }
+

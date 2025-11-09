@@ -36,3 +36,4 @@ func (u *User) IsAdmin() bool {
 func (u *User) IsActive() bool {
 	return u.Status == "active"
 }
+

@@ -124,3 +124,4 @@ func (r *RoomRepository) ExistsByRoomNumber(roomNumber string) (bool, error) {
 	err := r.db.Model(&models.Room{}).Where("room_number = ?", roomNumber).Count(&count).Error
 	return count > 0, err
 }
+
