@@ -116,8 +116,9 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 		{
 			rooms.GET("", roomHandler.ListRooms)                     // 获取所有房间
 			rooms.GET("/available", roomHandler.ListAvailableRooms)  // 获取可用房间
-			rooms.GET("/:id", roomHandler.GetRoomByID)               // 获取房间详情
+			rooms.GET("/floor/:floor", roomHandler.GetRoomByFloor)   // 根据楼层获取房间
 			rooms.GET("/search/type", roomHandler.SearchRoomsByType) // 按房型搜索
+			rooms.GET("/:id", roomHandler.GetRoomByID)               // 获取房间详情
 
 			// 需要认证的房间管理路由（管理员）
 			roomsAuth := rooms.Group("")
