@@ -37,3 +37,8 @@ func (u *User) IsActive() bool {
 	return u.Status == "active"
 }
 
+
+
+
+
+

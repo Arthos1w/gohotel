@@ -125,3 +125,11 @@ func (r *RoomRepository) ExistsByRoomNumber(roomNumber string) (bool, error) {
 	return count > 0, err
 }
 
+
+
+
+
+
+
+
+

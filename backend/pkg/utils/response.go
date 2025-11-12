@@ -100,3 +100,9 @@ func SuccessWithPage(c *gin.Context, data interface{}, page int, pageSize int, t
 	})
 }
 
+
+
+
+
+
+

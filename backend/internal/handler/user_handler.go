@@ -22,8 +22,8 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 // Register 用户注册
 // POST /api/auth/register
 func (h *UserHandler) Register(c *gin.Context) {
-	var req service.RegisterRequest
 
+	var req service.RegisterRequest
 	// 1. 绑定并验证请求参数
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.ErrorResponse(c, err)

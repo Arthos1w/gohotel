@@ -59,17 +59,18 @@ func main() {
 	// 6. 设置 Gin 模式
 	gin.SetMode(config.AppConfig.Server.Mode)
 
+
 	// 7. 创建 Gin 引擎
 	r := gin.New()
 
 	// 8. 使用中间件
-	r.Use(gin.Recovery())                // 恢复中间件（处理 panic）
+	r.Use(gin.Recovery())                // 恢复中间件（处理 panic） 
 	r.Use(middleware.CORSMiddleware())   // 跨域中间件
 	r.Use(middleware.LoggerMiddleware()) // 日志中间件
 
 	// 9. 设置路由
 	setupRoutes(r, userHandler, roomHandler, bookingHandler)
-
+	
 	// 10. 启动服务器
 	fmt.Println("═══════════════════════════════════════════════")
 	fmt.Println("🏨 酒店管理系统 API 服务器")
