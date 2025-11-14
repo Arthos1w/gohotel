@@ -1,4 +1,5 @@
-import { addRule } from '@/services/ant-design-pro/api';
+// import { addRule } from '@/services/ant-design-pro/api';
+// TODO: 等待后端提供创建用户的 API
 import { PlusOutlined } from '@ant-design/icons';
 import {
   type ActionType,
@@ -20,21 +21,17 @@ const CreateForm: FC<CreateFormProps> = (props) => {
    * @zh-CN 国际化配置
    * */
 
-  const { run, loading } = useRequest(addRule, {
-    manual: true,
-    onSuccess: () => {
-      messageApi.success('Added successfully');
-      reload?.();
-    },
-    onError: () => {
-      messageApi.error('Adding failed, please try again!');
-    },
-  });
+  // TODO: 等待后端提供创建用户的 API
+  const loading = false;
+  const run = async (data: any) => {
+    messageApi.warning('创建用户功能待实现');
+    return Promise.resolve();
+  };
   return (
     <>
       {contextHolder}
       <ModalForm
-        title={'新建规则'}
+        title={'新建用户'}
         trigger={
           <Button type="primary" icon={<PlusOutlined />}>
             新建
@@ -48,8 +45,9 @@ const CreateForm: FC<CreateFormProps> = (props) => {
         }}
         onFinish={async (value) => {
           await run({
-            data: value as API.RuleListItem,
+            data: value as API.User,
           });
+          reload?.();
           return true;
         }}
       >
@@ -57,13 +55,30 @@ const CreateForm: FC<CreateFormProps> = (props) => {
           rules={[
             {
               required: true,
-              message: '规则名称为必填项',
+              message: '用户名为必填项',
             },
           ]}
           width="md"
-          name="name"
+          name="username"
+          label="用户名"
         />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '邮箱为必填项',
+            },
+            {
+              type: 'email',
+              message: '请输入有效的邮箱地址',
+            },
+          ]}
+          width="md"
+          name="email"
+          label="邮箱"
+        />
+        <ProFormText width="md" name="real_name" label="真实姓名" />
+        <ProFormText width="md" name="phone" label="手机号" />
       </ModalForm>
     </>
   );

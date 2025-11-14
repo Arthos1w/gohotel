@@ -1,41 +1,27 @@
-import { updateRule } from '@/services/ant-design-pro/api';
+// import { updateRule } from '@/services/ant-design-pro/api';
+// TODO: 等待后端提供更新用户的 API
 import {
-  ProFormDateTimePicker,
-  ProFormRadio,
   ProFormSelect,
   ProFormText,
-  ProFormTextArea,
   StepsForm,
 } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
 import { Modal, message } from 'antd';
 import React, { cloneElement, useCallback, useState } from 'react';
-export type FormValueType = {
-  target?: string;
-  template?: string;
-  type?: string;
-  time?: string;
-  frequency?: string;
-} & Partial<API.RuleListItem>;
+export type FormValueType = Partial<API.User>;
 export type UpdateFormProps = {
   trigger?: React.ReactElement<any>;
   onOk?: () => void;
-  values: Partial<API.RuleListItem>;
+  values: Partial<API.User>;
 };
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const { onOk, values, trigger } = props;
   const [open, setOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const { run } = useRequest(updateRule, {
-    manual: true,
-    onSuccess: () => {
-      messageApi.success('Configuration is successful');
-      onOk?.();
-    },
-    onError: () => {
-      messageApi.error('Configuration failed, please try again!');
-    },
-  });
+  // TODO: 等待后端提供更新用户的 API
+  const run = async (data: any) => {
+    messageApi.warning('更新用户功能待实现');
+    return Promise.resolve();
+  };
   const onCancel = useCallback(() => {
     setOpen(false);
   }, []);
@@ -71,7 +57,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
                 padding: '32px 40px 48px',
               }}
               destroyOnClose
-              title={'规则配置'}
+              title={'编辑用户'}
               open={open}
               footer={submitter}
               onCancel={onCancel}
@@ -84,95 +70,51 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       >
         <StepsForm.StepForm initialValues={values} title={'基本信息'}>
           <ProFormText
-            name="name"
-            label={'规则名称'}
+            name="username"
+            label={'用户名'}
             width="md"
             rules={[
               {
                 required: true,
-                message: '请输入规则名称！',
+                message: '请输入用户名！',
               },
             ]}
           />
-          <ProFormTextArea
-            name="desc"
+          <ProFormText
+            name="email"
+            label={'邮箱'}
             width="md"
-            label={'规则描述'}
-            placeholder={'请输入至少五个字符'}
             rules={[
               {
                 required: true,
-                message: '请输入至少五个字符的规则描述！',
-                min: 5,
+                message: '请输入邮箱！',
+              },
+              {
+                type: 'email',
+                message: '请输入有效的邮箱地址',
               },
             ]}
           />
+          <ProFormText name="real_name" label={'真实姓名'} width="md" />
+          <ProFormText name="phone" label={'手机号'} width="md" />
         </StepsForm.StepForm>
-        <StepsForm.StepForm
-          initialValues={{
-            target: '0',
-            template: '0',
-          }}
-          title={'配置规则属性'}
-        >
+        <StepsForm.StepForm initialValues={values} title={'角色和状态'}>
           <ProFormSelect
-            name="target"
+            name="role"
             width="md"
-            label={'监控对象'}
+            label={'角色'}
             valueEnum={{
-              0: '表一',
-              1: '表二',
+              user: '用户',
+              admin: '管理员',
             }}
           />
           <ProFormSelect
-            name="template"
+            name="status"
             width="md"
-            label={'规则模板'}
+            label={'状态'}
             valueEnum={{
-              0: '规则模板一',
-              1: '规则模板二',
-            }}
-          />
-          <ProFormRadio.Group
-            name="type"
-            label={'规则类型'}
-            options={[
-              {
-                value: '0',
-                label: '强',
-              },
-              {
-                value: '1',
-                label: '弱',
-              },
-            ]}
-          />
-        </StepsForm.StepForm>
-        <StepsForm.StepForm
-          initialValues={{
-            type: '1',
-            frequency: 'month',
-          }}
-          title={'设定调度周期'}
-        >
-          <ProFormDateTimePicker
-            name="time"
-            width="md"
-            label={'开始时间'}
-            rules={[
-              {
-                required: true,
-                message: '请选择开始时间！',
-              },
-            ]}
-          />
-          <ProFormSelect
-            name="frequency"
-            label={'监控对象'}
-            width="md"
-            valueEnum={{
-              month: '月',
-              week: '周',
+              active: '活跃',
+              blocked: '已封禁',
             }}
           />
         </StepsForm.StepForm>

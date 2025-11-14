@@ -1,4 +1,4 @@
-import { removeRule, rule } from '@/services/ant-design-pro/api';
+import { getAdminUsers } from '@/services/api/guanliyuan';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -6,16 +6,15 @@ import {
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
+import { Button, Drawer, message } from 'antd';
+import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
 const TableList: React.FC = () => {
   const actionRef = useRef<ActionType | null>(null);
   const [showDetail, setShowDetail] = useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.User>();
+  const [selectedRowsState, setSelectedRows] = useState<API.User[]>([]);
 
   /**
    * @en-US International configuration
@@ -23,21 +22,17 @@ const TableList: React.FC = () => {
    * */
 
   const [messageApi, contextHolder] = message.useMessage();
-  const { run: delRun, loading } = useRequest(removeRule, {
-    manual: true,
-    onSuccess: () => {
-      setSelectedRows([]);
-      actionRef.current?.reloadAndRest?.();
-      messageApi.success('Deleted successfully and will refresh soon');
-    },
-    onError: () => {
-      messageApi.error('Delete failed, please try again');
-    },
-  });
-  const columns: ProColumns<API.RuleListItem>[] = [
+  
+  const columns: ProColumns<API.User>[] = [
     {
-      title: '规则名称',
-      dataIndex: 'name',
+      title: 'ID',
+      dataIndex: 'id',
+      width: 80,
+      hideInSearch: true,
+    },
+    {
+      title: '用户名',
+      dataIndex: 'username',
       render: (dom, entity) => {
         return (
           <a
@@ -52,55 +47,58 @@ const TableList: React.FC = () => {
       },
     },
     {
-      title: '描述',
-      dataIndex: 'desc',
-      valueType: 'textarea',
+      title: '真实姓名',
+      dataIndex: 'real_name',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
+      title: '邮箱',
+      dataIndex: 'email',
+    },
+    {
+      title: '手机号',
+      dataIndex: 'phone',
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      valueEnum: {
+        user: {
+          text: '用户',
+          status: 'Default',
+        },
+        admin: {
+          text: '管理员',
+          status: 'Success',
+        },
+      },
     },
     {
       title: '状态',
       dataIndex: 'status',
-      hideInForm: true,
       valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
+        active: {
+          text: '活跃',
           status: 'Success',
         },
-        3: {
-          text: '异常',
+        blocked: {
+          text: '已封禁',
           status: 'Error',
         },
       },
     },
     {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
+      title: '创建时间',
+      dataIndex: 'created_at',
       valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
+      hideInSearch: true,
+      sorter: true,
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updated_at',
+      valueType: 'dateTime',
+      hideInSearch: true,
+      sorter: true,
     },
     {
       title: '操作',
@@ -108,50 +106,72 @@ const TableList: React.FC = () => {
       valueType: 'option',
       render: (_, record) => [
         <UpdateForm
-          trigger={<a>配置</a>}
-          key="config"
+          trigger={<a>编辑</a>}
+          key="edit"
           onOk={actionRef.current?.reload}
           values={record}
         />,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          订阅警报
-        </a>,
       ],
     },
   ];
 
-  /**
-   *  Delete node
-   * @zh-CN 删除节点
-   *
-   * @param selectedRows
-   */
-  const handleRemove = useCallback(
-    async (selectedRows: API.RuleListItem[]) => {
-      if (!selectedRows?.length) {
-        messageApi.warning('请选择删除项');
-        return;
-      }
-      await delRun({
-        data: {
-          key: selectedRows.map((row) => row.key),
-        },
+  // 请求函数，将 ProTable 的分页参数转换为后端需要的格式
+  const fetchUsers = async (params: any) => {
+    try {
+      const { current = 1, pageSize = 10, ...rest } = params;
+      const response = await getAdminUsers({
+        page: current,
+        page_size: pageSize,
+        ...rest,
       });
-    },
-    [delRun, messageApi.warning],
-  );
+      
+      // 如果后端返回的是数组（根据 Swagger 定义，返回的是 User[]）
+      if (Array.isArray(response)) {
+        return {
+          data: response,
+          success: true,
+          total: response.length, // 注意：如果后端没有返回总数，这里使用数组长度（不准确）
+        };
+      }
+      
+      // 后端实际返回格式：{ success: true, data: User[], page: { total: number, ... } }
+      const responseObj = response as any;
+      if (responseObj && typeof responseObj === 'object' && 'data' in responseObj) {
+        // 从 page.total 中获取总数
+        const total = responseObj.page?.total || responseObj.total || 0;
+        return {
+          data: responseObj.data || [],
+          success: true,
+          total: total,
+        };
+      }
+      
+      return {
+        data: [],
+        success: true,
+        total: 0,
+      };
+    } catch (error) {
+      messageApi.error('获取用户列表失败');
+      return {
+        data: [],
+        success: false,
+        total: 0,
+      };
+    }
+  };
   return (
     <PageContainer>
       {contextHolder}
-      <ProTable<API.RuleListItem, API.PageParams>
-        headerTitle={'查询表格'}
+      <ProTable<API.User>
+        headerTitle={'用户管理'}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
         toolBarRender={() => [<CreateForm key="create" reload={actionRef.current?.reload} />]}
-        request={rule}
+        request={fetchUsers}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -171,23 +191,17 @@ const TableList: React.FC = () => {
               >
                 {selectedRowsState.length}
               </a>{' '}
-              项 &nbsp;&nbsp;
-              <span>
-                服务调用次数总计{' '}
-                {selectedRowsState.reduce((pre, item) => pre + (item.callNo ?? 0), 0)} 万
-              </span>
+              项
             </div>
           }
         >
           <Button
-            loading={loading}
             onClick={() => {
-              handleRemove(selectedRowsState);
+              messageApi.warning('删除功能待实现');
             }}
           >
             批量删除
           </Button>
-          <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
 
@@ -200,17 +214,17 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
+        {currentRow?.username && (
+          <ProDescriptions<API.User>
             column={2}
-            title={currentRow?.name}
+            title={currentRow?.username}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.name,
+              id: currentRow?.id,
             }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.User>[]}
           />
         )}
       </Drawer>
