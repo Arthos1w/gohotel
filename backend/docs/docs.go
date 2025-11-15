@@ -120,6 +120,42 @@ const docTemplate = `{
                         "description": "每页数量",
                         "name": "page_size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邮箱",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "手机号",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "真实姓名",
+                        "name": "real_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "角色",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {

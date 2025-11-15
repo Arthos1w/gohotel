@@ -353,6 +353,30 @@ paths:
         in: query
         name: page_size
         type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 邮箱
+        in: query
+        name: email
+        type: string
+      - description: 手机号
+        in: query
+        name: phone
+        type: string
+      - description: 真实姓名
+        in: query
+        name: real_name
+        type: string
+      - description: 角色
+        in: query
+        name: role
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:

@@ -21,6 +21,32 @@ func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
+// ExistsByUsername 检查用户名是否已存在
+func (r *UserRepository) ExistsByUsername(username string) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.User{}).Where("username = ?", username).Count(&count).Error
+	return count > 0, err
+}
+
+// ExistsByEmail 检查邮箱是否已存在
+func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count).Error
+	return count > 0, err
+}
+
+// Update 更新用户信息
+func (r *UserRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
+}
+
+// Delete 删除用户
+func (r *UserRepository) Delete(id uint) error {
+	return r.db.Delete(&models.User{}, id).Error
+}
+
+
+
 // FindByID 根据 ID 查找用户
 func (r *UserRepository) FindByID(id uint) (*models.User, error) {
 	var user models.User
@@ -51,54 +77,41 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-// ExistsByUsername 检查用户名是否已存在
-func (r *UserRepository) ExistsByUsername(username string) (bool, error) {
-	var count int64
-	err := r.db.Model(&models.User{}).Where("username = ?", username).Count(&count).Error
-	return count > 0, err
-}
-
-// ExistsByEmail 检查邮箱是否已存在
-func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
-	var count int64
-	err := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count).Error
-	return count > 0, err
-}
-
-// Update 更新用户信息
-func (r *UserRepository) Update(user *models.User) error {
-	return r.db.Save(user).Error
-}
-
-// Delete 删除用户
-func (r *UserRepository) Delete(id uint) error {
-	return r.db.Delete(&models.User{}, id).Error
-}
-
-// FindAll 查询所有用户（分页）
-func (r *UserRepository) FindAll(page, pageSize int) ([]models.User, int64, error) {
+// FindAll 根据条件过滤查询用户（分页）
+func (r *UserRepository) FindAll(page, pageSize int, username, email, phone, realName, role, status string) ([]models.User, int64, error) {
 	var users []models.User
 	var total int64
 
-	// 先查询总数
-	if err := r.db.Model(&models.User{}).Count(&total).Error; err != nil {
+	// 构建查询条件
+	query := r.db.Model(&models.User{})
+
+
+	if username != "" {
+		query = query.Where("username LIKE ?", "%"+username+"%")
+	}
+	if email != "" {
+		query = query.Where("email LIKE ?", "%"+email+"%")
+	}
+	if phone != "" {
+		query = query.Where("phone LIKE ?", "%"+phone+"%")
+	}
+	if realName != "" {
+		query = query.Where("real_name LIKE ?", "%"+realName+"%")
+	}
+	if role != "" {
+		query = query.Where("role = ?", role)
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	// 先查询符合条件的总数
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// 计算偏移量
+	// 计算偏移量并分页查询
 	offset := (page - 1) * pageSize
-
-	// 分页查询
-	err := r.db.Offset(offset).Limit(pageSize).Find(&users).Error
+	err := query.Offset(offset).Limit(pageSize).Find(&users).Error
 	return users, total, err
 }
-
-
-
-
-
-
-
-
-
-

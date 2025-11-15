@@ -221,6 +221,12 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Security Bearer
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(10)
+// @Param username query string false "用户名"
+// @Param email query string false "邮箱"
+// @Param phone query string false "手机号"
+// @Param real_name query string false "真实姓名"
+// @Param role query string false "角色"
+// @Param status query string false "状态"
 // @Success 200 {array} models.User
 // @Failure 401 {object} errors.ErrorResponse
 // @Failure 403 {object} errors.ErrorResponse
@@ -229,8 +235,14 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	// 获取分页参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	username := c.Query("username")
+	email := c.Query("email")
+	phone := c.Query("phone")
+	realName := c.Query("real_name")
+	role := c.Query("role")
+	status := c.Query("status")
 
-	users, total, err := h.userService.ListUsers(page, pageSize)
+	users, total, err := h.userService.GetUser(page, pageSize, username, email, phone, realName, role, status)
 	if err != nil {
 		utils.ErrorResponse(c, err)
 		return

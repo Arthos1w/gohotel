@@ -118,17 +118,7 @@ func (s *UserService) Login(req *LoginRequest) (*LoginResponse, error) {
 	}, nil
 }
 
-// GetUserByID 根据 ID 获取用户信息
-func (s *UserService) GetUserByID(id uint) (*models.User, error) {
-	user, err := s.userRepo.FindByID(id)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, errors.NewNotFoundError("用户不存在")
-		}
-		return nil, errors.NewDatabaseError("find user", err)
-	}
-	return user, nil
-}
+
 
 // UpdateProfile 更新用户资料
 func (s *UserService) UpdateProfile(userID uint, phone, realName, avatar string) (*models.User, error) {
@@ -191,19 +181,26 @@ func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword strin
 	return nil
 }
 
-// ListUsers 获取用户列表（分页）
-func (s *UserService) ListUsers(page, pageSize int) ([]models.User, int64, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 10
-	}
 
-	users, total, err := s.userRepo.FindAll(page, pageSize)
+
+// GetUserByID 根据 ID 获取用户信息
+func (s *UserService) GetUserByID(id uint) (*models.User, error) {
+	user, err := s.userRepo.FindByID(id)
 	if err != nil {
-		return nil, 0, errors.NewDatabaseError("list users", err)
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.NewNotFoundError("用户不存在")
+		}
+		return nil, errors.NewDatabaseError("find user", err)
 	}
+	return user, nil
+}
 
+// GetUser 根据条件查询用户
+func (s *UserService) GetUser(page, pageSize int, username, email, phone, realName , role , status  string) ([]models.User, int64, error) {
+
+	users, total, err := s.userRepo.FindAll(page, pageSize, username, email, phone, realName, role, status)
+	if err != nil {
+		return nil, 0, errors.NewDatabaseError("list users filter", err)
+	}
 	return users, total, nil
 }

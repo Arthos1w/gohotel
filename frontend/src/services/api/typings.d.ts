@@ -96,6 +96,18 @@ declare namespace API {
     page?: number;
     /** 每页数量 */
     page_size?: number;
+    /** 用户名 */
+    username?: string;
+    /** 邮箱 */
+    email?: string;
+    /** 手机号 */
+    phone?: string;
+    /** 真实姓名 */
+    real_name?: string;
+    /** 角色 */
+    role?: string;
+    /** 状态 */
+    status?: string;
   };
 
   type getBookingsIdParams = {
