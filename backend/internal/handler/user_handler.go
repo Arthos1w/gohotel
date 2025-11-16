@@ -265,7 +265,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 // @Failure 403 {object} errors.ErrorResponse
 // @Failure 409 {object} errors.ErrorResponse
 // @Router /api/admin/users/user [post]
-func (h *UserHandler) AddUser(c *gin。Context) {
+func (h *UserHandler) AddUser(c *gin.Context) {
 	// 1. 绑定并验证请求参数
 	var req service.AddUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -274,7 +274,7 @@ func (h *UserHandler) AddUser(c *gin。Context) {
 	}
 
 	// 2. 调用 Service 层
-	user, err := h。userService.添加User(&req)
+	user, err := h.userService.AddUser(&req)
 	if err != nil {
 		utils.ErrorResponse(c, err)
 		return
