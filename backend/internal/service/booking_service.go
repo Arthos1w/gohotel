@@ -1,11 +1,11 @@
 package service
 
 import (
-	"fmt"
 	"gohotel/internal/models"
 	"gohotel/internal/repository"
 	"gohotel/pkg/errors"
 	"time"
+	"gohotel/pkg/utils"
 
 	"gorm.io/gorm"
 )
@@ -91,7 +91,7 @@ func (s *BookingService) CreateBooking(userID uint, req *CreateBookingRequest) (
 	totalPrice := float64(totalDays) * room.Price
 
 	// 7. 生成订单号
-	bookingNumber := generateBookingNumber()
+	bookingNumber :=  utils.GenID()
 
 	// 8. 创建预订对象
 	booking := &models.Booking{
@@ -281,13 +281,3 @@ func (s *BookingService) ListAllBookings(page, pageSize int) ([]models.Booking, 
 	return bookings, total, nil
 }
 
-// generateBookingNumber 生成订单号
-// 格式：BK + 年月日时分秒 + 随机数
-// 例如：BK20240101123456789
-func generateBookingNumber() string {
-	now := time.Now()
-	return fmt.Sprintf("BK%s%03d",
-		now.Format("20060102150405"),
-		now.Nanosecond()%1000,
-	)
-}
