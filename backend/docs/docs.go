@@ -1547,7 +1547,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "description": "主键",
+                    "description": "主键（使用雪花算法生成）",
                     "type": "integer"
                 },
                 "phone": {

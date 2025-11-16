@@ -165,12 +165,8 @@ declare namespace API {
   };
 
   type LoginResponse = {
-    success?: boolean;
-    data?: {
-      token?: string;
-      user?: User;
-    };
-    message?: string;
+    token?: string;
+    user?: User;
   };
 
   type postBookingsIdCancelParams = {
@@ -265,7 +261,7 @@ declare namespace API {
     created_at?: string;
     /** 邮箱（唯一） */
     email?: string;
-    /** 主键 */
+    /** 主键（使用雪花算法生成） */
     id?: number;
     /** 手机号 */
     phone?: string;
