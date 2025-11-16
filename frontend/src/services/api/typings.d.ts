@@ -1,9 +1,9 @@
 declare namespace API {
   type AddUserRequest = {
     email: string;
-    is_admin?: boolean;
     phone?: string;
     real_name?: string;
+    role?: string;
     username: string;
   };
 

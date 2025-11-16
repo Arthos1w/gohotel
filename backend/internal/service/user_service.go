@@ -34,7 +34,7 @@ type AddUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Phone    string `json:"phone"`
 	RealName string `json:"real_name"`
-	IsAdmin  bool   `json:"is_admin"`
+	Role     string `json:"role"`
 }
 
 // LoginRequest 登录请求结构
@@ -286,12 +286,7 @@ func (s *UserService) AddUser(req *AddUserRequest) (*models.User, error) {
 		Status:     "active",
 		FirstLogin: true,
 	}
-
-	// 根据 IsAdmin 参数设置角色
-	if req.IsAdmin {
-		user.Role = "admin"
-	}
-	// 处理 Phone 字段，将 string 转换为 *string
+	user.Role = req.Role // 处理 Phone 字段，将 string 转换为 *string
 	if req.Phone != "" {
 		phone := req.Phone
 		user.Phone = &phone
