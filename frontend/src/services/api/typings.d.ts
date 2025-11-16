@@ -270,7 +270,7 @@ declare namespace API {
     email?: string;
     /** 是否首次登录 */
     first_login?: boolean;
-    /** 主键（使用雪花算法生成） */
+    /** 主键（使用雪花算法生成）（使用雪花算法生成） */
     id?: number;
     /** 手机号 */
     phone?: string;
