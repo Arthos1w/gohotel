@@ -1652,13 +1652,13 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "is_admin": {
-                    "type": "boolean"
-                },
                 "phone": {
                     "type": "string"
                 },
                 "real_name": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 },
                 "username": {
