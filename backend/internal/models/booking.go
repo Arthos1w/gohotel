@@ -7,8 +7,8 @@ import (
 // Booking 预订模型
 // 对应数据库中的 bookings 表
 type Booking struct {
-	ID             uint      `gorm:"primaryKey" json:"id"`                                 // 主键
-	BookingNumber  string    `gorm:"unique;not null;size:50;index" json:"booking_number"`  // 预订单号（唯一）
+	ID             int64     `gorm:"primaryKey" json:"id"`             // 主键
+	BookingNumber  int64     `gorm:"unique;not null" json:"booking_number"`  			   // 预订单号（唯一）
 	UserID         uint      `gorm:"not null;index" json:"user_id"`                        // 用户 ID（有索引）
 	RoomID         uint      `gorm:"not null;index" json:"room_id"`                        // 房间 ID（有索引）
 	CheckIn        time.Time `gorm:"not null;index" json:"check_in"`                       // 入住日期（有索引）

@@ -1441,7 +1441,7 @@ const docTemplate = `{
             "properties": {
                 "booking_number": {
                     "description": "预订单号（唯一）",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "cancel_reason": {
                     "description": "取消原因",
@@ -1618,7 +1618,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "phone": {
-                    "description": "手机号",
+                    "description": "手机号（唯一，可为空）",
                     "type": "string"
                 },
                 "real_name": {
