@@ -51,7 +51,7 @@ type LoginResponse struct {
 
 // DeleteUsersRequest 批量删除用户请求结构
 type DeleteUsersRequest struct {
-	UserIDs []int64 `json:"user_ids" binding:"required,min=1"`
+	UserIDs []string `json:"user_ids" binding:"required,min=1"`
 }
 
 // Register 用户注册
