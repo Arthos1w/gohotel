@@ -65,6 +65,11 @@ func (r *UserRepository) Delete(id int64) error {
 	return r.db.Delete(&models.User{}, id).Error
 }
 
+// BatchDelete 批量删除用户
+func (r *UserRepository) BatchDelete(userIDs []int64) error {
+	return r.db.Delete(&models.User{}, userIDs).Error
+}
+
 // FindByID 根据 ID 查找用户
 func (r *UserRepository) FindByID(id int64) (*models.User, error) {
 	var user models.User
