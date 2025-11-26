@@ -17,6 +17,7 @@ type Config struct {
 	JWT      JWTConfig
 	Redis    RedisConfig
 	COS      COSConfig
+	Log      LogConfig
 }
 
 // COSConfig 腾讯云对象存储配置
@@ -51,6 +52,17 @@ type DatabaseConfig struct {
 type JWTConfig struct {
 	Secret     string        // JWT 签名密钥
 	ExpireTime time.Duration // Token 过期时间
+}
+
+// LogConfig 日志配置
+type LogConfig struct {
+	Level      string // 日志级别: debug, info, warn, error
+	Filename   string // 日志文件路径
+	MaxSize    int    // 单个文件最大大小(MB)
+	MaxBackups int    // 保留旧文件数量
+	MaxAge     int    // 保留天数
+	Compress   bool   // 是否压缩
+	Console    bool   // 是否输出到控制台
 }
 
 // RedisConfig Redis 配置
