@@ -188,9 +188,10 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 			roomsAuth := rooms.Group("")
 			roomsAuth.Use(middleware.AuthMiddleware())
 			{
-				roomsAuth.POST("", roomHandler.CreateRoom)            // 创建房间
-				roomsAuth.POST("/:id", roomHandler.UpdateRoom)        // 更新房间
-				roomsAuth.POST("/:id/delete", roomHandler.DeleteRoom) // 删除房间
+				roomsAuth.POST("", roomHandler.CreateRoom)             // 创建房间
+				roomsAuth.POST("/batch", roomHandler.BatchCreateRooms) // 批量创建房间
+				roomsAuth.POST("/:id", roomHandler.UpdateRoom)         // 更新房间
+				roomsAuth.POST("/:id/delete", roomHandler.DeleteRoom)  // 删除房间
 			}
 		}
 		// 日志路由

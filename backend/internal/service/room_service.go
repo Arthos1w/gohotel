@@ -270,3 +270,109 @@ func (s *RoomService) UpdateRoomStatus(id uint, status string) error {
 
 	return nil
 }
+
+// BatchCreateRoomRequest 批量创建房间请求
+type BatchCreateRoomRequest struct {
+	Rooms []CreateRoomRequest `json:"rooms" binding:"required,min=1,dive"`
+}
+
+// BatchCreateRoomsResult 批量创建结果
+type BatchCreateRoomsResult struct {
+	SuccessCount int            `json:"success_count"` // 成功创建的数量
+	FailedCount  int            `json:"failed_count"`  // 失败的数量
+	CreatedRooms []*models.Room `json:"created_rooms"` // 成功创建的房间
+	FailedRooms  []FailedRoom   `json:"failed_rooms"`  // 失败的房间信息
+}
+
+// FailedRoom 创建失败的房间信息
+type FailedRoom struct {
+	RoomNumber string `json:"room_number"`
+	Reason     string `json:"reason"`
+}
+
+// BatchCreateRooms 批量创建房间
+func (s *RoomService) BatchCreateRooms(req *BatchCreateRoomRequest) (*BatchCreateRoomsResult, error) {
+	if len(req.Rooms) == 0 {
+		return nil, errors.NewBadRequestError("房间列表不能为空")
+	}
+
+	if len(req.Rooms) > 100 {
+		return nil, errors.NewBadRequestError("单次最多创建100个房间")
+	}
+
+	result := &BatchCreateRoomsResult{
+		CreatedRooms: make([]*models.Room, 0),
+		FailedRooms:  make([]FailedRoom, 0),
+	}
+
+	// 1. 收集所有房间号
+	roomNumbers := make([]string, len(req.Rooms))
+	for i, r := range req.Rooms {
+		roomNumbers[i] = r.RoomNumber
+	}
+
+	// 2. 批量检查哪些房间号已存在
+	existingNumbers, err := s.roomRepo.ExistsByRoomNumbers(roomNumbers)
+	if err != nil {
+		return nil, errors.NewDatabaseError("check existing room numbers", err)
+	}
+	existingSet := make(map[string]bool)
+	for _, num := range existingNumbers {
+		existingSet[num] = true
+	}
+
+	// 3. 检查请求中是否有重复的房间号
+	seenNumbers := make(map[string]bool)
+	var roomsToCreate []*models.Room
+
+	for _, r := range req.Rooms {
+		// 检查请求内是否重复
+		if seenNumbers[r.RoomNumber] {
+			result.FailedRooms = append(result.FailedRooms, FailedRoom{
+				RoomNumber: r.RoomNumber,
+				Reason:     "请求中房间号重复",
+			})
+			result.FailedCount++
+			continue
+		}
+		seenNumbers[r.RoomNumber] = true
+
+		// 检查是否已存在于数据库
+		if existingSet[r.RoomNumber] {
+			result.FailedRooms = append(result.FailedRooms, FailedRoom{
+				RoomNumber: r.RoomNumber,
+				Reason:     "房间号已存在",
+			})
+			result.FailedCount++
+			continue
+		}
+
+		// 创建房间对象
+		room := &models.Room{
+			RoomNumber:    r.RoomNumber,
+			RoomType:      r.RoomType,
+			Floor:         r.Floor,
+			Price:         r.Price,
+			OriginalPrice: r.OriginalPrice,
+			Capacity:      r.Capacity,
+			Area:          r.Area,
+			BedType:       r.BedType,
+			Description:   r.Description,
+			Facilities:    r.Facilities,
+			Images:        r.Images,
+			Status:        "available",
+		}
+		roomsToCreate = append(roomsToCreate, room)
+	}
+
+	// 4. 批量创建有效的房间
+	if len(roomsToCreate) > 0 {
+		if err := s.roomRepo.CreateBatch(roomsToCreate); err != nil {
+			return nil, errors.NewDatabaseError("batch create rooms", err)
+		}
+		result.CreatedRooms = roomsToCreate
+		result.SuccessCount = len(roomsToCreate)
+	}
+
+	return result, nil
+}

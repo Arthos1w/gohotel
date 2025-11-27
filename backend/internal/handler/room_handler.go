@@ -50,6 +50,36 @@ func (h *RoomHandler) CreateRoom(c *gin.Context) {
 	utils.SuccessWithMessage(c, "房间创建成功", room)
 }
 
+// BatchCreateRooms 批量创建房间（管理员）
+// @Summary 批量创建房间（管理员）
+// @Description 管理员批量创建多个房间，支持部分成功
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body service.BatchCreateRoomRequest true "房间列表"
+// @Success 200 {object} service.BatchCreateRoomsResult
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 401 {object} errors.ErrorResponse
+// @Failure 403 {object} errors.ErrorResponse
+// @Router /api/rooms/batch [post]
+func (h *RoomHandler) BatchCreateRooms(c *gin.Context) {
+	var req service.BatchCreateRoomRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponse(c, errors.NewBadRequestError(err.Error()))
+		return
+	}
+
+	result, err := h.roomService.BatchCreateRooms(&req)
+	if err != nil {
+		utils.ErrorResponse(c, err)
+		return
+	}
+
+	utils.SuccessWithMessage(c, "批量创建完成", result)
+}
+
 // GetRoomByID 根据 ID 获取房间
 // @Summary 获取房间详情
 // @Description 根据房间ID获取房间详细信息

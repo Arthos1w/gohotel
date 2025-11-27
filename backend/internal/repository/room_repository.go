@@ -125,7 +125,7 @@ func (r *RoomRepository) FindRoomByFloor(floor, page, pageSize int) ([]models.Ro
 	}
 
 	offset := (page - 1) * pageSize
-	err := query.Offset(offset).Limit(pageSize).Order("room_number").Find(&rooms).Error//排序方式
+	err := query.Offset(offset).Limit(pageSize).Order("room_number").Find(&rooms).Error //排序方式
 	return rooms, total, err
 }
 
@@ -141,3 +141,21 @@ func (r *RoomRepository) ExistsByRoomNumber(roomNumber string) (bool, error) {
 	return count > 0, err
 }
 
+// CreateBatch 批量创建房间
+func (r *RoomRepository) CreateBatch(rooms []*models.Room) error {
+	return r.db.Create(rooms).Error
+}
+
+// ExistsByRoomNumbers 批量检查房间号是否已存在，返回已存在的房间号列表
+func (r *RoomRepository) ExistsByRoomNumbers(roomNumbers []string) ([]string, error) {
+	var existingRooms []models.Room
+	err := r.db.Model(&models.Room{}).Where("room_number IN ?", roomNumbers).Select("room_number").Find(&existingRooms).Error
+	if err != nil {
+		return nil, err
+	}
+	var existingNumbers []string
+	for _, room := range existingRooms {
+		existingNumbers = append(existingNumbers, room.RoomNumber)
+	}
+	return existingNumbers, nil
+}
