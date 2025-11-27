@@ -184,6 +184,35 @@ definitions:
     - email
     - username
     type: object
+  service.BatchCreateRoomRequest:
+    properties:
+      rooms:
+        items:
+          $ref: '#/definitions/service.CreateRoomRequest'
+        minItems: 1
+        type: array
+    required:
+    - rooms
+    type: object
+  service.BatchCreateRoomsResult:
+    properties:
+      created_rooms:
+        description: 成功创建的房间
+        items:
+          $ref: '#/definitions/models.Room'
+        type: array
+      failed_count:
+        description: 失败的数量
+        type: integer
+      failed_rooms:
+        description: 失败的房间信息
+        items:
+          $ref: '#/definitions/service.FailedRoom'
+        type: array
+      success_count:
+        description: 成功创建的数量
+        type: integer
+    type: object
   service.CreateBookingRequest:
     properties:
       check_in:
@@ -251,6 +280,13 @@ definitions:
         type: array
     required:
     - user_ids
+    type: object
+  service.FailedRoom:
+    properties:
+      reason:
+        type: string
+      room_number:
+        type: string
     type: object
   service.LogEntry:
     properties:
@@ -1254,6 +1290,42 @@ paths:
       summary: 获取可用房间列表
       tags:
       - 房间
+  /api/rooms/batch:
+    post:
+      consumes:
+      - application/json
+      description: 管理员批量创建多个房间，支持部分成功
+      parameters:
+      - description: 房间列表
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.BatchCreateRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.BatchCreateRoomsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: 批量创建房间（管理员）
+      tags:
+      - 管理员
   /api/rooms/floor/{floor}:
     get:
       consumes:

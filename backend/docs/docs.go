@@ -1243,6 +1243,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/rooms/batch": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "管理员批量创建多个房间，支持部分成功",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员"
+                ],
+                "summary": "批量创建房间（管理员）",
+                "parameters": [
+                    {
+                        "description": "房间列表",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.BatchCreateRoomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.BatchCreateRoomsResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/rooms/floor/{floor}": {
             "get": {
                 "description": "根据楼层号获取该楼层的所有房间，支持分页",
@@ -1933,6 +1990,48 @@ const docTemplate = `{
                 }
             }
         },
+        "service.BatchCreateRoomRequest": {
+            "type": "object",
+            "required": [
+                "rooms"
+            ],
+            "properties": {
+                "rooms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/service.CreateRoomRequest"
+                    }
+                }
+            }
+        },
+        "service.BatchCreateRoomsResult": {
+            "type": "object",
+            "properties": {
+                "created_rooms": {
+                    "description": "成功创建的房间",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Room"
+                    }
+                },
+                "failed_count": {
+                    "description": "失败的数量",
+                    "type": "integer"
+                },
+                "failed_rooms": {
+                    "description": "失败的房间信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.FailedRoom"
+                    }
+                },
+                "success_count": {
+                    "description": "成功创建的数量",
+                    "type": "integer"
+                }
+            }
+        },
         "service.CreateBookingRequest": {
             "type": "object",
             "required": [
@@ -2027,6 +2126,17 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "service.FailedRoom": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "room_number": {
+                    "type": "string"
                 }
             }
         },

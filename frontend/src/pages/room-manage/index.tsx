@@ -9,6 +9,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Drawer, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
+import BatchCreateForm from './components/BatchCreateForm';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -218,7 +219,10 @@ const RoomList: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [<CreateForm key="create" reload={actionRef.current?.reload} />]}
+        toolBarRender={() => [
+          <BatchCreateForm key="batch-create" reload={actionRef.current?.reload} />,
+          <CreateForm key="create" reload={actionRef.current?.reload} />,
+        ]}
         request={fetchRooms}
         columns={columns}
         rowSelection={{
