@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Tag, Button, Space, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, UserOutlined, ExpandOutlined } from '@ant-design/icons';
-import { useDrag } from 'react-dnd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useDrag, useDragLayer } from 'react-dnd';
 
 const ItemTypes = {
   ROOM_CARD: 'room_card',
@@ -16,6 +16,16 @@ interface DraggableRoomCardProps {
   onDrop: (id: number, left: number, top: number) => void;
 }
 
+// 网格大小（与背景网格一致）
+const GRID_SIZE = 20;
+
+// 对齐到网格的函数
+const snapToGrid = (x: number, y: number): [number, number] => {
+  const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
+  const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
+  return [snappedX, snappedY];
+};
+
 const DraggableRoomCard: React.FC<DraggableRoomCardProps> = ({
   room,
   left,
@@ -24,24 +34,31 @@ const DraggableRoomCard: React.FC<DraggableRoomCardProps> = ({
   onDelete,
   onDrop,
 }) => {
-  const [{ isDragging }, drag] = useDrag(
+  const [{ isDragging }, drag, preview] = useDrag(
     () => ({
       type: ItemTypes.ROOM_CARD,
-      item: { id: room.id, left, top },
+      item: { id: room.id, left, top, room },
       collect: (monitor) => ({
         isDragging: monitor.isDragging(),
       }),
       end: (item, monitor) => {
         const delta = monitor.getDifferenceFromInitialOffset();
-        if (delta) {
-          const newLeft = Math.round(item.left + delta.x);
-          const newTop = Math.round(item.top + delta.y);
-          onDrop(item.id, newLeft, newTop);
+        if (delta && item.id) {
+          const newLeft = item.left + delta.x;
+          const newTop = item.top + delta.y;
+          // 对齐到网格
+          const [snappedLeft, snappedTop] = snapToGrid(newLeft, newTop);
+          onDrop(item.id, snappedLeft, snappedTop);
         }
       },
     }),
-    [room.id, left, top, onDrop],
+    [room, left, top, onDrop],
   );
+
+  // 使用空图片作为拖动预览，这样我们可以使用自定义的拖动层
+  React.useEffect(() => {
+    preview(new Image(), { captureDraggingState: true });
+  }, [preview]);
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -71,96 +88,100 @@ const DraggableRoomCard: React.FC<DraggableRoomCardProps> = ({
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       style={{
         position: 'absolute',
         left,
         top,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0 : 1,
         cursor: 'move',
-        width: 280,
+        width: 120,
+        height: 100,
       }}
     >
       <Card
         hoverable
         size="small"
-        title={
-          <Space>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-              房间 {room.room_number}
-            </span>
-            <Tag color={getStatusColor(room.status)}>{getStatusText(room.status)}</Tag>
-          </Space>
-        }
-        extra={
-          <Space>
-            <Button type="text" size="small" icon={<EditOutlined />} onClick={onEdit} />
+        bodyStyle={{
+          padding: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+        }}
+        style={{
+          boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.1)',
+          height: '100%',
+          border: `2px solid ${
+            room.status === 'available' ? '#52c41a' :
+            room.status === 'occupied' ? '#ff4d4f' :
+            room.status === 'maintenance' ? '#faad14' : '#d9d9d9'
+          }`,
+          backgroundColor: 
+            room.status === 'available' ? '#f6ffed' :
+            room.status === 'occupied' ? '#fff1f0' :
+            room.status === 'maintenance' ? '#fffbe6' : '#fafafa',
+        }}
+      >
+        <div style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ 
+            fontSize: '20px', 
+            fontWeight: 'bold',
+            marginBottom: 8,
+            color: '#000',
+          }}>
+            {room.room_number}
+          </div>
+          <Tag 
+            color={getStatusColor(room.status)}
+            style={{ margin: 0, fontSize: '12px' }}
+          >
+            {getStatusText(room.status)}
+          </Tag>
+        </div>
+        
+        {/* 悬浮时显示操作按钮 */}
+        <div
+          className="room-card-actions"
+          style={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            display: 'none',
+          }}
+        >
+          <Space size={2}>
+            <Button 
+              type="text" 
+              size="small" 
+              icon={<EditOutlined />} 
+              onClick={onEdit}
+              style={{ fontSize: 12, padding: 2 }}
+            />
             <Popconfirm
               title="确定要删除这个房间吗？"
-              onConfirm={() => onDelete(room.id)}
+              onConfirm={() => room.id && onDelete(room.id)}
               okText="确定"
               cancelText="取消"
             >
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              <Button 
+                type="text" 
+                size="small" 
+                danger 
+                icon={<DeleteOutlined />}
+                style={{ fontSize: 12, padding: 2 }}
+              />
             </Popconfirm>
           </Space>
-        }
-        style={{
-          boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div style={{ fontSize: '13px' }}>
-          <div style={{ marginBottom: 8 }}>
-            <Tag color="blue">{room.room_type}</Tag>
-            <Tag>{room.floor}楼</Tag>
-          </div>
-
-          <div style={{ marginBottom: 4 }}>
-            <span style={{ fontWeight: 'bold', color: '#ff4d4f', fontSize: '18px' }}>
-              ¥{room.price}
-            </span>
-            <span style={{ color: '#999', fontSize: '12px' }}>/晚</span>
-            {room.original_price && room.original_price > room.price && (
-              <span
-                style={{
-                  marginLeft: 8,
-                  textDecoration: 'line-through',
-                  color: '#999',
-                  fontSize: '12px',
-                }}
-              >
-                ¥{room.original_price}
-              </span>
-            )}
-          </div>
-
-          <div style={{ color: '#666', lineHeight: '22px' }}>
-            <div>
-              <UserOutlined /> 可住 {room.capacity} 人
-            </div>
-            {room.area && (
-              <div>
-                <ExpandOutlined /> {room.area} m²
-              </div>
-            )}
-            {room.bed_type && <div>{room.bed_type}</div>}
-          </div>
-
-          {room.description && (
-            <div
-              style={{
-                marginTop: 8,
-                paddingTop: 8,
-                borderTop: '1px solid #f0f0f0',
-                color: '#999',
-                fontSize: '12px',
-              }}
-            >
-              {room.description}
-            </div>
-          )}
         </div>
       </Card>
+      
+      <style>{`
+        .ant-card:hover .room-card-actions {
+          display: block !important;
+        }
+      `}</style>
     </div>
   );
 };

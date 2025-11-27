@@ -1,7 +1,7 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Button, message, Spin, theme } from 'antd';
+import { Card, Button, message, Spin, theme, Space, Tag } from 'antd';
 import React, { useState, useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
+import { DndProvider, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import DraggableRoomCard from './components/DraggableRoomCard';
 import { useRequest } from '@umijs/max';
@@ -13,6 +13,116 @@ interface RoomPosition {
   left: number;
   top: number;
 }
+
+// 自定义拖动层组件
+const CustomDragLayer: React.FC = () => {
+  const { itemType, isDragging, item, initialOffset, currentOffset } = useDragLayer((monitor) => ({
+    item: monitor.getItem(),
+    itemType: monitor.getItemType(),
+    initialOffset: monitor.getInitialSourceClientOffset(),
+    currentOffset: monitor.getSourceClientOffset(),
+    isDragging: monitor.isDragging(),
+  }));
+
+  if (!isDragging || !currentOffset || !item) {
+    return null;
+  }
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'available':
+        return 'success';
+      case 'occupied':
+        return 'error';
+      case 'maintenance':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case 'available':
+        return '可用';
+      case 'occupied':
+        return '占用';
+      case 'maintenance':
+        return '维护中';
+      default:
+        return '未知';
+    }
+  };
+
+  const room = item.room;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        pointerEvents: 'none',
+        zIndex: 100,
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          left: currentOffset.x,
+          top: currentOffset.y,
+          width: 120,
+          height: 100,
+          opacity: 0.8,
+        }}
+      >
+        <Card
+          size="small"
+          bodyStyle={{
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+          }}
+          style={{
+            height: '100%',
+            border: `2px solid ${
+              room.status === 'available' ? '#52c41a' :
+              room.status === 'occupied' ? '#ff4d4f' :
+              room.status === 'maintenance' ? '#faad14' : '#d9d9d9'
+            }`,
+            backgroundColor: 
+              room.status === 'available' ? '#f6ffed' :
+              room.status === 'occupied' ? '#fff1f0' :
+              room.status === 'maintenance' ? '#fffbe6' : '#fafafa',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
+          }}
+        >
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{ 
+              fontSize: '20px', 
+              fontWeight: 'bold',
+              marginBottom: 8,
+              color: '#000',
+            }}>
+              {room.room_number}
+            </div>
+            <Tag 
+              color={getStatusColor(room.status)}
+              style={{ margin: 0, fontSize: '12px' }}
+            >
+              {getStatusText(room.status)}
+            </Tag>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
 
 const RoomManage: React.FC = () => {
   const { token } = theme.useToken();
@@ -69,17 +179,22 @@ const RoomManage: React.FC = () => {
 
   // 生成默认位置(网格布局)
   const generateDefaultPosition = (id: number, index: number): RoomPosition => {
-    const cardWidth = 300; // 卡片宽度 + 间距
-    const cardHeight = 240; // 卡片高度 + 间距
-    const columns = 4; // 每行显示4个卡片
+    const GRID_SIZE = 20; // 网格大小
+    const cardWidth = 120; // 卡片宽度
+    const cardHeight = 100; // 卡片高度
+    const columns = 8; // 每行显示8个卡片
     
     const row = Math.floor(index / columns);
     const col = index % columns;
     
+    // 使用网格对齐的间距
+    const horizontalSpacing = Math.ceil((cardWidth + 20) / GRID_SIZE) * GRID_SIZE; // 140
+    const verticalSpacing = Math.ceil((cardHeight + 20) / GRID_SIZE) * GRID_SIZE; // 120
+    
     return {
       id,
-      left: col * cardWidth + 20,
-      top: row * cardHeight + 20,
+      left: col * horizontalSpacing + GRID_SIZE,
+      top: row * verticalSpacing + GRID_SIZE,
     };
   };
 
@@ -139,6 +254,18 @@ const RoomManage: React.FC = () => {
     }
   };
 
+  // 保存布局
+  const handleSaveLayout = () => {
+    if (roomPositions.length === 0) {
+      message.warning('没有需要保存的布局');
+      return;
+    }
+    localStorage.setItem('roomPositions', JSON.stringify(roomPositions));
+    message.success('布局已保存');
+    // TODO: 这里可以调用 API 保存到后端
+    // await saveRoomPositions(roomPositions);
+  };
+
   // 重置布局
   const handleResetLayout = () => {
     initializeDefaultPositions();
@@ -153,51 +280,46 @@ const RoomManage: React.FC = () => {
         <Button key="reset" onClick={handleResetLayout}>
           重置布局
         </Button>,
-        <Button key="create" type="primary" onClick={() => handleOpenModal(null)}>
-          新建房间
+        <Button key="save" type="primary" onClick={handleSaveLayout}>
+          保存布局
         </Button>,
       ]}
     >
       <DndProvider backend={HTML5Backend}>
-        <Card bodyStyle={{ padding: 0, position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              left: 24,
-              top: 24,
-              zIndex: 10,
-              backgroundColor: token.colorBgContainer,
-              padding: '12px 8px',
-              borderRadius: token.borderRadiusLG,
-              boxShadow: token.boxShadowSecondary,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              minWidth: 80,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                marginBottom: 12,
-                color: token.colorPrimary,
-              }}
-            >
-              楼层
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <CustomDragLayer />
+        {/* 楼层选择器 */}
+        <Card 
+          style={{ marginBottom: 16 }}
+          bodyStyle={{ padding: '12px 16px' }}
+        >
+          <Space size="middle" align="center">
+            <span style={{ 
+              fontWeight: 'bold', 
+              fontSize: 14,
+              color: token.colorPrimary,
+            }}>
+              选择楼层：
+            </span>
+            <Space size="small">
               {floors.map((floor) => (
                 <Button
                   key={floor}
                   type={selectedFloor === floor ? 'primary' : 'default'}
                   onClick={() => setSelectedFloor(floor)}
-                  style={{ width: '100%' }}
+                  size="middle"
                 >
                   {floor}楼
                 </Button>
               ))}
-            </div>
-          </div>
+            </Space>
+            <span style={{ color: token.colorTextSecondary, fontSize: 12 }}>
+              当前显示: {selectedFloor}楼 - 共 {filteredRooms?.length || 0} 个房间
+            </span>
+          </Space>
+        </Card>
+
+        {/* 房间布局拖拽区域 */}
+        <Card bodyStyle={{ padding: 0, position: 'relative' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '50px 0' }}>
               <Spin size="large" />
@@ -208,7 +330,7 @@ const RoomManage: React.FC = () => {
                 position: 'relative',
                 width: '100%',
                 minHeight: '800px',
-                height: 'calc(100vh - 200px)',
+                height: 'calc(100vh - 280px)',
                 backgroundColor: token.colorBgLayout,
                 backgroundImage:
                   `linear-gradient(${token.colorSplit} 1px, transparent 1px), linear-gradient(90deg, ${token.colorSplit} 1px, transparent 1px)`,

@@ -1,12 +1,22 @@
 import { AppstoreAddOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import {
-  ModalForm,
-  ProFormDigit,
-  ProFormSelect,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { ModalForm } from '@ant-design/pro-components';
 import type { ActionType } from '@ant-design/pro-components';
-import { Button, Card, Col, Divider, message, Row, Space, Alert, Typography, Tag } from 'antd';
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  message,
+  Row,
+  Space,
+  Alert,
+  Typography,
+  Tag,
+  Input,
+  InputNumber,
+  Select,
+  Form,
+} from 'antd';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { postRoomsBatch } from '@/services/api/guanliyuan';
@@ -29,28 +39,26 @@ interface RoomFormData {
   bed_type?: string;
 }
 
-const roomTypeOptions = {
-  '单人间': '单人间',
-  '双人间': '双人间',
-  '豪华套房': '豪华套房',
-  '总统套房': '总统套房',
-  '商务套房': '商务套房',
-};
+const roomTypeOptions = [
+  { label: '单人间', value: '单人间' },
+  { label: '双人间', value: '双人间' },
+  { label: '豪华套房', value: '豪华套房' },
+  { label: '总统套房', value: '总统套房' },
+  { label: '商务套房', value: '商务套房' },
+];
 
-const bedTypeOptions = {
-  '单人床': '单人床',
-  '双人床': '双人床',
-  '大床': '大床',
-  '两张单人床': '两张单人床',
-};
+const bedTypeOptions = [
+  { label: '单人床', value: '单人床' },
+  { label: '双人床', value: '双人床' },
+  { label: '大床', value: '大床' },
+  { label: '两张单人床', value: '两张单人床' },
+];
 
 const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
   const { reload } = props;
   const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState(false);
-  const [rooms, setRooms] = useState<RoomFormData[]>([
-    { key: '1' },
-  ]);
+  const [rooms, setRooms] = useState<RoomFormData[]>([{ key: '1' }]);
   const [result, setResult] = useState<API.BatchCreateRoomsResult | null>(null);
 
   // 生成唯一 key
@@ -76,9 +84,7 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
 
   // 更新房间数据
   const updateRoom = (key: string, field: string, value: any) => {
-    setRooms(
-      rooms.map((r) => (r.key === key ? { ...r, [field]: value } : r))
-    );
+    setRooms(rooms.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
   };
 
   // 快速批量添加
@@ -102,22 +108,34 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
     setRooms([...rooms, ...newRooms]);
   };
 
+  // 验证单个房间
+  const validateRoom = (room: RoomFormData): string | null => {
+    if (!room.room_number) return '房间号不能为空';
+    if (!room.room_type) return '房型不能为空';
+    if (!room.floor || room.floor < 1) return '楼层不能为空';
+    if (!room.price || room.price <= 0) return '价格必须大于0';
+    if (!room.capacity || room.capacity < 1) return '可住人数不能为空';
+    return null;
+  };
+
   // 提交
   const handleSubmit = async () => {
-    // 验证
+    // 验证所有房间
     const validRooms: API.CreateRoomRequest[] = [];
-    for (const room of rooms) {
-      if (!room.room_number || !room.room_type || !room.floor || !room.price || !room.capacity) {
-        messageApi.error(`房间 ${room.room_number || '(未填写房间号)'} 信息不完整`);
+    for (let i = 0; i < rooms.length; i++) {
+      const room = rooms[i];
+      const error = validateRoom(room);
+      if (error) {
+        messageApi.error(`房间 ${i + 1} (${room.room_number || '未填写房间号'}): ${error}`);
         return false;
       }
       validRooms.push({
-        room_number: room.room_number,
-        room_type: room.room_type,
-        floor: room.floor,
-        price: room.price,
+        room_number: room.room_number!,
+        room_type: room.room_type!,
+        floor: room.floor!,
+        price: room.price!,
         original_price: room.original_price,
-        capacity: room.capacity,
+        capacity: room.capacity!,
         area: room.area,
         bed_type: room.bed_type,
       });
@@ -128,7 +146,7 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
       const response = await postRoomsBatch({ rooms: validRooms });
       const data = (response as any)?.data || response;
       setResult(data);
-      
+
       if (data.success_count > 0) {
         messageApi.success(`成功创建 ${data.success_count} 个房间`);
         if (data.failed_count === 0) {
@@ -139,11 +157,11 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
           return true;
         }
       }
-      
+
       if (data.failed_count > 0) {
         messageApi.warning(`${data.failed_count} 个房间创建失败`);
       }
-      
+
       if (reload) reload();
       return false; // 有失败的，不关闭弹窗
     } catch (error) {
@@ -152,6 +170,16 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 检查字段是否有效
+  const isFieldInvalid = (room: RoomFormData, field: keyof RoomFormData) => {
+    if (field === 'room_number') return !room.room_number;
+    if (field === 'room_type') return !room.room_type;
+    if (field === 'floor') return !room.floor || room.floor < 1;
+    if (field === 'price') return !room.price || room.price <= 0;
+    if (field === 'capacity') return !room.capacity || room.capacity < 1;
+    return false;
   };
 
   return (
@@ -201,7 +229,7 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
         </Card>
 
         {/* 结果展示 */}
-        {result && result.failed_count > 0 && (
+        {result && result.failed_count && result.failed_count > 0 && (
           <Alert
             type="warning"
             showIcon
@@ -209,7 +237,7 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
             message={`${result.failed_count} 个房间创建失败`}
             description={
               <div>
-                {result.failed_rooms.map((item, index) => (
+                {result.failed_rooms?.map((item, index) => (
                   <div key={index}>
                     <Tag color="red">{item.room_number}</Tag>
                     <Text type="secondary">{item.reason}</Text>
@@ -240,109 +268,120 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
             >
               <Row gutter={16}>
                 <Col span={6}>
-                  <ProFormText
-                    name={`room_${room.key}_number`}
+                  <Form.Item
                     label="房间号"
-                    rules={[{ required: true, message: '必填' }]}
-                    fieldProps={{
-                      value: room.room_number,
-                      onChange: (e) => updateRoom(room.key, 'room_number', e.target.value),
-                    }}
-                    placeholder="如: 101"
-                  />
+                    required
+                    validateStatus={isFieldInvalid(room, 'room_number') ? 'error' : ''}
+                    help={isFieldInvalid(room, 'room_number') ? '必填' : ''}
+                  >
+                    <Input
+                      value={room.room_number}
+                      onChange={(e) => updateRoom(room.key, 'room_number', e.target.value)}
+                      placeholder="如: 101"
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormSelect
-                    name={`room_${room.key}_type`}
+                  <Form.Item
                     label="房型"
-                    rules={[{ required: true, message: '必填' }]}
-                    valueEnum={roomTypeOptions}
-                    fieldProps={{
-                      value: room.room_type,
-                      onChange: (v) => updateRoom(room.key, 'room_type', v),
-                    }}
-                    placeholder="选择房型"
-                  />
+                    required
+                    validateStatus={isFieldInvalid(room, 'room_type') ? 'error' : ''}
+                    help={isFieldInvalid(room, 'room_type') ? '必填' : ''}
+                  >
+                    <Select
+                      value={room.room_type}
+                      onChange={(v) => updateRoom(room.key, 'room_type', v)}
+                      options={roomTypeOptions}
+                      placeholder="选择房型"
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormDigit
-                    name={`room_${room.key}_floor`}
+                  <Form.Item
                     label="楼层"
-                    rules={[{ required: true, message: '必填' }]}
-                    min={1}
-                    max={100}
-                    fieldProps={{
-                      precision: 0,
-                      value: room.floor,
-                      onChange: (v) => updateRoom(room.key, 'floor', v),
-                    }}
-                  />
+                    required
+                    validateStatus={isFieldInvalid(room, 'floor') ? 'error' : ''}
+                    help={isFieldInvalid(room, 'floor') ? '必填' : ''}
+                  >
+                    <InputNumber
+                      value={room.floor}
+                      onChange={(v) => updateRoom(room.key, 'floor', v)}
+                      min={1}
+                      max={100}
+                      precision={0}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormDigit
-                    name={`room_${room.key}_price`}
+                  <Form.Item
                     label="价格"
-                    rules={[{ required: true, message: '必填' }]}
-                    min={0}
-                    fieldProps={{
-                      precision: 2,
-                      addonBefore: '¥',
-                      value: room.price,
-                      onChange: (v) => updateRoom(room.key, 'price', v),
-                    }}
-                  />
+                    required
+                    validateStatus={isFieldInvalid(room, 'price') ? 'error' : ''}
+                    help={isFieldInvalid(room, 'price') ? '必填' : ''}
+                  >
+                    <InputNumber
+                      value={room.price}
+                      onChange={(v) => updateRoom(room.key, 'price', v)}
+                      min={0}
+                      precision={2}
+                      addonBefore="¥"
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={6}>
-                  <ProFormDigit
-                    name={`room_${room.key}_capacity`}
+                  <Form.Item
                     label="可住人数"
-                    rules={[{ required: true, message: '必填' }]}
-                    min={1}
-                    max={10}
-                    fieldProps={{
-                      precision: 0,
-                      value: room.capacity,
-                      onChange: (v) => updateRoom(room.key, 'capacity', v),
-                    }}
-                  />
+                    required
+                    validateStatus={isFieldInvalid(room, 'capacity') ? 'error' : ''}
+                    help={isFieldInvalid(room, 'capacity') ? '必填' : ''}
+                  >
+                    <InputNumber
+                      value={room.capacity}
+                      onChange={(v) => updateRoom(room.key, 'capacity', v)}
+                      min={1}
+                      max={10}
+                      precision={0}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormDigit
-                    name={`room_${room.key}_area`}
-                    label="面积(m²)"
-                    min={0}
-                    fieldProps={{
-                      precision: 1,
-                      value: room.area,
-                      onChange: (v) => updateRoom(room.key, 'area', v),
-                    }}
-                  />
+                  <Form.Item label="面积(m²)">
+                    <InputNumber
+                      value={room.area}
+                      onChange={(v) => updateRoom(room.key, 'area', v)}
+                      min={0}
+                      precision={1}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormSelect
-                    name={`room_${room.key}_bed`}
-                    label="床型"
-                    valueEnum={bedTypeOptions}
-                    fieldProps={{
-                      value: room.bed_type,
-                      onChange: (v) => updateRoom(room.key, 'bed_type', v),
-                    }}
-                  />
+                  <Form.Item label="床型">
+                    <Select
+                      value={room.bed_type}
+                      onChange={(v) => updateRoom(room.key, 'bed_type', v)}
+                      options={bedTypeOptions}
+                      placeholder="选择床型"
+                      allowClear
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={6}>
-                  <ProFormDigit
-                    name={`room_${room.key}_original_price`}
-                    label="原价"
-                    min={0}
-                    fieldProps={{
-                      precision: 2,
-                      addonBefore: '¥',
-                      value: room.original_price,
-                      onChange: (v) => updateRoom(room.key, 'original_price', v),
-                    }}
-                  />
+                  <Form.Item label="原价">
+                    <InputNumber
+                      value={room.original_price}
+                      onChange={(v) => updateRoom(room.key, 'original_price', v)}
+                      min={0}
+                      precision={2}
+                      addonBefore="¥"
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 </Col>
               </Row>
             </Card>
@@ -366,4 +405,3 @@ const BatchCreateForm: FC<BatchCreateFormProps> = (props) => {
 };
 
 export default BatchCreateForm;
-
