@@ -116,6 +116,13 @@ declare namespace API {
     status?: string;
   };
 
+  type getAdminLogsParams = {
+    /** 页码 */
+    page?: number;
+    /** 每页数量 */
+    page_size?: number;
+  };
+
   type getAdminUsersIdParams = {
     /** 用户 ID */
     id: number;
@@ -189,6 +196,11 @@ declare namespace API {
     page_size?: number;
   };
 
+  type LogEntry = {
+    level: "debug" | "info" | "warn" | "error";
+    message: string;
+  };
+
   type LoginRequest = {
     password: string;
     username: string;
@@ -197,6 +209,10 @@ declare namespace API {
   type LoginResponse = {
     token?: string;
     user?: User;
+  };
+
+  type LogReportRequest = {
+    logs: LogEntry[];
   };
 
   type postAdminBookingsIdCheckinParams = {
