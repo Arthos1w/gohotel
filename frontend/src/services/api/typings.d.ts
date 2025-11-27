@@ -7,6 +7,21 @@ declare namespace API {
     username: string;
   };
 
+  type BatchCreateRoomRequest = {
+    rooms: CreateRoomRequest[];
+  };
+
+  type BatchCreateRoomsResult = {
+    /** 成功创建的房间 */
+    created_rooms?: Room[];
+    /** 失败的数量 */
+    failed_count?: number;
+    /** 失败的房间信息 */
+    failed_rooms?: FailedRoom[];
+    /** 成功创建的数量 */
+    success_count?: number;
+  };
+
   type Booking = {
     /** 预订单号（唯一，JSON序列化为字符串） */
     booking_number?: number;
@@ -91,6 +106,11 @@ declare namespace API {
   type ErrorResponse = {
     error?: ErrorInfo;
     success?: boolean;
+  };
+
+  type FailedRoom = {
+    reason?: string;
+    room_number?: string;
   };
 
   type getAdminBookingsParams = {

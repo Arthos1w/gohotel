@@ -207,3 +207,18 @@ export async function postRoomsIdOpenApiDelete(
     ...(options || {}),
   });
 }
+
+/** 批量创建房间（管理员） 管理员批量创建多个房间，支持部分成功 POST /api/rooms/batch */
+export async function postRoomsBatch(
+  body: API.BatchCreateRoomRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BatchCreateRoomsResult>("/api/rooms/batch", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
