@@ -116,6 +116,15 @@ func Load() error {
 			BaseURL:    getEnv("COS_BASE_URL", ""),
 			BucketName: getEnv("COS_BUCKET_NAME", ""),
 		},
+		Log: LogConfig{
+			Level:      getEnv("LOG_LEVEL", "info"),
+			Filename:   getEnv("LOG_FILENAME", "logs/app.log"),
+			MaxSize:    getIntEnv("LOG_MAX_SIZE", 100),
+			MaxBackups: getIntEnv("LOG_MAX_BACKUPS", 3),
+			MaxAge:     getIntEnv("LOG_MAX_AGE", 7),
+			Compress:   getEnv("LOG_COMPRESS", "true") == "true",
+			Console:    getEnv("LOG_CONSOLE", "true") == "true",
+		},
 	}
 
 	return nil

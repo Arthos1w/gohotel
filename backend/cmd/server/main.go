@@ -10,6 +10,7 @@ import (
 	"gohotel/internal/middleware"
 	"gohotel/internal/repository"
 	"gohotel/internal/service"
+	"gohotel/pkg/logger"
 	"gohotel/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -46,25 +47,41 @@ func main() {
 	}
 	fmt.Println("✅ 配置加载成功!")
 
-	// 2. 连接数据库
+	// 2. 初始化日志
+	fmt.Println("📝 正在初始化日志...")
+	if err := logger.Init(&logger.LogConfig{
+		Level:      config.AppConfig.Log.Level,
+		Filename:   config.AppConfig.Log.Filename,
+		MaxSize:    config.AppConfig.Log.MaxSize,
+		MaxBackups: config.AppConfig.Log.MaxBackups,
+		MaxAge:     config.AppConfig.Log.MaxAge,
+		Compress:   config.AppConfig.Log.Compress,
+		Console:    config.AppConfig.Log.Console,
+	}); err != nil {
+		log.Fatal("日志初始化失败:", err)
+	}
+	defer logger.Sync()
+	fmt.Println("✅ 日志初始化成功!")
+
+	// 3. 连接数据库
 	fmt.Println("🔌 正在连接数据库...")
 	if err := database.InitMySQL(); err != nil {
 		log.Fatal("数据库连接失败:", err)
 	}
 	defer database.CloseDB()
 
-	// 3. 自动迁移数据库表
+	// 4. 自动迁移数据库表
 	fmt.Println("🔄 正在执行数据库迁移...")
 	if err := database.AutoMigrate(); err != nil {
 		log.Fatal("数据库迁移失败:", err)
 	}
 
-	// 4. 插入测试数据（可选）
+	// 5. 插入测试数据（可选）
 	if err := database.SeedData(); err != nil {
 		log.Fatal("测试数据插入失败:", err)
 	}
 
-	// 5. 初始化雪花算法节点
+	// 6. 初始化雪花算法节点
 	fmt.Println("❄️  正在初始化雪花算法节点...")
 	// 节点ID可以从配置文件读取，这里暂时使用固定值 1
 	// 如果是分布式部署，需要确保每个实例使用不同的节点ID（0-1023）
@@ -73,37 +90,40 @@ func main() {
 	}
 	fmt.Println("✅ 雪花算法初始化成功!")
 
-	// 6. 初始化依赖注入
+	// 7. 初始化依赖注入
 	// Repository 层
 	userRepo := repository.NewUserRepository(database.DB)
 	roomRepo := repository.NewRoomRepository(database.DB)
 	bookingRepo := repository.NewBookingRepository(database.DB)
+	logRepo := repository.NewLogRepository(database.DB)
 
 	// Service 层
 	userService := service.NewUserService(userRepo)
 	roomService := service.NewRoomService(roomRepo)
 	bookingService := service.NewBookingService(bookingRepo, roomRepo, userRepo)
+	logService := service.NewLogService(logRepo)
 
 	// Handler 层
 	userHandler := handler.NewUserHandler(userService)
 	roomHandler := handler.NewRoomHandler(roomService)
 	bookingHandler := handler.NewBookingHandler(bookingService)
+	logHandler := handler.NewLogHandler(logService)
 
-	// 7. 设置 Gin 模式
+	// 8. 设置 Gin 模式
 	gin.SetMode(config.AppConfig.Server.Mode)
 
-	// 8. 创建 Gin 引擎
+	// 9. 创建 Gin 引擎
 	r := gin.New()
 
-	// 9. 使用中间件
+	// 10. 使用中间件
 	r.Use(gin.Recovery())                // 恢复中间件（处理 panic）
 	r.Use(middleware.CORSMiddleware())   // 跨域中间件
 	r.Use(middleware.LoggerMiddleware()) // 日志中间件
 
-	// 10. 设置路由
-	setupRoutes(r, userHandler, roomHandler, bookingHandler)
+	// 11. 设置路由
+	setupRoutes(r, userHandler, roomHandler, bookingHandler, logHandler)
 
-	// 11. 启动服务器
+	// 12. 启动服务器
 	fmt.Println("═══════════════════════════════════════════════")
 	fmt.Println("🏨 酒店管理系统 API 服务器")
 	fmt.Println("═══════════════════════════════════════════════")
@@ -126,7 +146,7 @@ func main() {
 }
 
 // setupRoutes 设置所有路由
-func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *handler.RoomHandler, bookingHandler *handler.BookingHandler) {
+func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *handler.RoomHandler, bookingHandler *handler.BookingHandler, logHandler *handler.LogHandler) {
 	// Swagger 文档路由
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -173,6 +193,12 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 				roomsAuth.POST("/:id/delete", roomHandler.DeleteRoom) // 删除房间
 			}
 		}
+		// 日志路由
+		logs := api.Group("/logs")
+		{
+			logs.POST("/report", logHandler.Report) // 上报日志
+			logs.GET("", logHandler.GetLogs)       // 获取日志列表
+		}
 
 		// 需要认证的路由
 		authorized := api.Group("")
@@ -211,6 +237,8 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 				admin.POST("/bookings/:id/checkin", bookingHandler.CheckIn)
 				admin.POST("/bookings/:id/checkout", bookingHandler.CheckOut)
 				admin.GET("/bookings/room", bookingHandler.GetBookingsByRoomNumberAndStatus) // 根据房间号和状态获取预订列表
+				// 日志管理
+				admin.GET("/logs", logHandler.GetLogs) // 获取日志列表
 			}
 		}
 	}

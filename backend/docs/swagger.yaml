@@ -252,6 +252,31 @@ definitions:
     required:
     - user_ids
     type: object
+  service.LogEntry:
+    properties:
+      level:
+        enum:
+        - debug
+        - info
+        - warn
+        - error
+        type: string
+      message:
+        type: string
+    required:
+    - level
+    - message
+    type: object
+  service.LogReportRequest:
+    properties:
+      logs:
+        items:
+          $ref: '#/definitions/service.LogEntry'
+        minItems: 1
+        type: array
+    required:
+    - logs
+    type: object
   service.LoginRequest:
     properties:
       password:
@@ -564,6 +589,39 @@ paths:
       summary: 通过客人信息搜索预订
       tags:
       - 管理员
+  /api/admin/logs:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取日志列表（管理员）
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: 获取日志列表
+      tags:
+      - 日志
   /api/admin/users:
     get:
       consumes:
@@ -953,6 +1011,33 @@ paths:
       summary: 获取我的预订列表
       tags:
       - 预订
+  /api/logs/report:
+    post:
+      consumes:
+      - application/json
+      description: 客户端批量上报日志
+      parameters:
+      - description: 日志数据
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.LogReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: 日志上报
+      tags:
+      - 日志
   /api/rooms:
     get:
       consumes:
