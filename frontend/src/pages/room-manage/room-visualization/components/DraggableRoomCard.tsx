@@ -1,11 +1,8 @@
 import React from 'react';
 import { Card, Tag, Button, Space, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useDrag, useDragLayer } from 'react-dnd';
-
-const ItemTypes = {
-  ROOM_CARD: 'room_card',
-};
+import { useDrag } from 'react-dnd';
+import { ItemTypes } from './DraggableFacilityCard';
 
 interface DraggableRoomCardProps {
   room: API.Room;
