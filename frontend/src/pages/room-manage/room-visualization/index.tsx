@@ -13,7 +13,9 @@ import DraggableFacilityCard, {
 } from './components/DraggableFacilityCard';
 import { useRequest } from '@umijs/max';
 import { getRooms } from '@/services/api/fangjian';
+import { postRoomsIdOpenApiDelete } from '@/services/api/guanliyuan';
 import Iconfont from '@/components/Iconfont';
+import UpdateForm from '../components/UpdateForm';
 
 interface RoomPosition {
   id: number;
@@ -224,6 +226,9 @@ const RoomManage: React.FC = () => {
   const [applySameFloorSameType, setApplySameFloorSameType] = useState(false);
   const [applyAllFloorsSameType, setApplyAllFloorsSameType] = useState(false);
 
+  // 编辑房间状态
+  const [editingRoom, setEditingRoom] = useState<API.Room | null>(null);
+
   // 使用 useRequest 获取房间数据
   const {
     data: rooms,
@@ -342,15 +347,76 @@ const RoomManage: React.FC = () => {
     });
   };
 
+  // 查找空闲位置（避免与现有元素重叠）
+  const findAvailablePosition = (
+    width: number,
+    height: number,
+    existingFacilities: Facility[],
+    existingRooms: RoomPosition[]
+  ): { left: number; top: number } => {
+    const GRID_SIZE = 20;
+    const CANVAS_WIDTH = 1200; // 画布宽度限制
+    const START_X = GRID_SIZE;
+    const START_Y = GRID_SIZE;
+    
+    // 获取当前楼层的所有占用区域
+    const occupiedAreas = [
+      ...existingFacilities.filter(f => f.floor === selectedFloor).map(f => ({
+        left: f.left,
+        top: f.top,
+        right: f.left + f.width,
+        bottom: f.top + f.height,
+      })),
+      ...existingRooms.map(r => ({
+        left: r.left,
+        top: r.top,
+        right: r.left + r.width,
+        bottom: r.top + r.height,
+      })),
+    ];
+
+    // 检查位置是否与任何现有元素重叠
+    const isOverlapping = (left: number, top: number, w: number, h: number) => {
+      const newArea = { left, top, right: left + w, bottom: top + h };
+      return occupiedAreas.some(area => 
+        !(newArea.right <= area.left || 
+          newArea.left >= area.right || 
+          newArea.bottom <= area.top || 
+          newArea.top >= area.bottom)
+      );
+    };
+
+    // 按网格遍历查找空闲位置
+    for (let y = START_Y; y < 2000; y += GRID_SIZE) {
+      for (let x = START_X; x < CANVAS_WIDTH - width; x += GRID_SIZE) {
+        if (!isOverlapping(x, y, width, height)) {
+          return { left: x, top: y };
+        }
+      }
+    }
+
+    // 如果找不到空闲位置，返回默认位置
+    return { left: START_X, top: START_Y };
+  };
+
   // 添加设施
   const handleAddFacility = (type: FacilityType) => {
     const config = FacilityConfig[type];
+    
+    // 查找空闲位置
+    const position = findAvailablePosition(
+      config.defaultWidth,
+      config.defaultHeight,
+      facilities,
+      roomPositions
+    );
+
     const newFacility: Facility = {
       id: `facility_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       floor: selectedFloor,
-      left: 20,
-      top: 20,
+      left: position.left,
+      top: position.top,
       width: config.defaultWidth,
       height: config.defaultHeight,
     };
@@ -504,14 +570,27 @@ const RoomManage: React.FC = () => {
     setResizePending(null);
   };
 
+  // 删除房间
   const handleDelete = async (id: number) => {
     try {
-      message.success(`房间 ${id} 删除成功(模拟)`);
+      await postRoomsIdOpenApiDelete({ id });
+      message.success('删除成功');
       setRoomPositions((prev) => prev.filter((pos) => pos.id !== id));
       reloadRooms();
     } catch (error) {
       message.error('删除失败');
     }
+  };
+
+  // 编辑房间
+  const handleEditRoom = (room: API.Room) => {
+    setEditingRoom(room);
+  };
+
+  // 编辑成功回调
+  const handleEditSuccess = () => {
+    setEditingRoom(null);
+    reloadRooms();
   };
 
   // 保存布局
@@ -694,6 +773,7 @@ const RoomManage: React.FC = () => {
                     top={position.top}
                     width={position.width}
                     height={position.height}
+                    onEdit={handleEditRoom}
                     onDelete={handleDelete}
                     onDrop={handleRoomDrop}
                     onResizeComplete={handleRoomResizeComplete}
@@ -784,6 +864,14 @@ const RoomManage: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* 编辑房间表单 */}
+      <UpdateForm
+        visible={!!editingRoom}
+        values={editingRoom || {}}
+        onOk={handleEditSuccess}
+        onCancel={() => setEditingRoom(null)}
+      />
     </PageContainer>
   );
 };

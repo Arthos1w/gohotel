@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Card, Button, Popconfirm } from 'antd';
-import { DeleteOutlined, EditOutlined, RedoOutlined } from '@ant-design/icons';
+import { DeleteOutlined, GatewayOutlined, RedoOutlined } from '@ant-design/icons';
 import { useDrag } from 'react-dnd';
 import Iconfont, { IconName } from '@/components/Iconfont';
 
@@ -172,9 +172,9 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
   const [{ isDragging }, drag, preview] = useDrag(
     () => ({
       type: ItemTypes.FACILITY_CARD,
-      item: { 
-        id: facility.id, 
-        left: facility.left, 
+      item: {
+        id: facility.id,
+        left: facility.left,
         top: facility.top,
         type: 'facility',
         facility,
@@ -222,13 +222,13 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - startPosRef.current.x;
       const deltaY = e.clientY - startPosRef.current.y;
-      
+
       let newWidth = startPosRef.current.width + deltaX;
       let newHeight = startPosRef.current.height + deltaY;
-      
+
       newWidth = Math.max(MIN_SIZE, Math.min(MAX_SIZE, snapToGrid(newWidth)));
       newHeight = Math.max(MIN_SIZE, Math.min(MAX_SIZE, snapToGrid(newHeight)));
-      
+
       setResizeWidth(newWidth);
       setResizeHeight(newHeight);
     };
@@ -238,7 +238,7 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
       // 拖拽结束后，如果尺寸有变化，触发弹窗
       const finalWidth = resizeWidth;
       const finalHeight = resizeHeight;
-      
+
       if (finalWidth !== facility.width || finalHeight !== facility.height) {
         // 调用回调触发弹窗确认
         if (onResizeComplete) {
@@ -297,29 +297,29 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
         }}
         style={{
           height: '100%',
-          border: isResizing 
-            ? `2px solid ${config.color}` 
+          border: isResizing
+            ? `2px solid ${config.color}`
             : `2px dashed ${config.color}`,
           backgroundColor: config.bgColor,
           borderRadius: 4,
-          boxShadow: isResizing 
-            ? `0 0 0 2px ${config.color}40, 0 8px 16px ${config.color}30` 
+          boxShadow: isResizing
+            ? `0 0 0 2px ${config.color}40, 0 8px 16px ${config.color}30`
             : undefined,
         }}
       >
-        <div style={{ 
-          textAlign: 'center', 
+        <div style={{
+          textAlign: 'center',
           width: '100%',
           overflow: 'hidden',
         }}>
           <div style={{ marginBottom: 2 }}>
-            <Iconfont 
-              name={config.icon} 
-              size={iconSize} 
+            <Iconfont
+              name={config.icon}
+              size={iconSize}
               color={config.color}
             />
           </div>
-          <div style={{ 
+          <div style={{
             fontSize: '11px',
             fontWeight: 'bold',
             color: config.color,
@@ -331,9 +331,9 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
           </div>
           {/* 调整大小模式下显示尺寸 */}
           {isResizing && (
-            <div style={{ 
-              marginTop: 2, 
-              fontSize: '10px', 
+            <div style={{
+              marginTop: 2,
+              fontSize: '10px',
               color: config.color,
               fontWeight: 'bold',
             }}>
@@ -357,7 +357,7 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
             <Button
               type="text"
               size="small"
-              icon={<EditOutlined />}
+              icon={<GatewayOutlined />}
               onClick={handleEnterResizeMode}
               style={{ fontSize: 10, padding: 2, minWidth: 20, height: 20 }}
               title="调整大小"

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Card, Tag, Button, Space, Popconfirm } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, GatewayOutlined, FormOutlined } from '@ant-design/icons';
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from './DraggableFacilityCard';
 
@@ -10,6 +10,7 @@ interface DraggableRoomCardProps {
   top: number;
   width: number;
   height: number;
+  onEdit?: (room: API.Room) => void;
   onDelete: (id: number) => void;
   onDrop: (id: number, left: number, top: number) => void;
   onResizeComplete?: (id: number, newWidth: number, newHeight: number, roomType?: string) => void;
@@ -31,6 +32,7 @@ const DraggableRoomCard: React.FC<DraggableRoomCardProps> = ({
   top,
   width,
   height,
+  onEdit,
   onDelete,
   onDrop,
   onResizeComplete,
@@ -251,11 +253,24 @@ const DraggableRoomCard: React.FC<DraggableRoomCardProps> = ({
           }}
         >
           <Space size={2}>
+            {onEdit && (
+              <Button 
+                type="text" 
+                size="small" 
+                icon={<FormOutlined />} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(room);
+                }}
+                style={{ fontSize: 12, padding: 2 }}
+                title="编辑"
+              />
+            )}
             {onResizeComplete && (
               <Button 
                 type="text" 
                 size="small" 
-                icon={<EditOutlined />} 
+                icon={<GatewayOutlined />} 
                 onClick={handleEnterResizeMode}
                 style={{ fontSize: 12, padding: 2 }}
                 title="调整大小"

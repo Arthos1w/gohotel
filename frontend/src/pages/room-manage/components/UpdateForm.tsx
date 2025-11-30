@@ -6,7 +6,7 @@ import {
   StepsForm,
 } from '@ant-design/pro-components';
 import { Modal, message } from 'antd';
-import React, { cloneElement, useCallback, useState } from 'react';
+import React, { cloneElement, useCallback, useState, useEffect } from 'react';
 import { postRoomsId } from '@/services/api/guanliyuan';
 
 export type FormValueType = Partial<API.Room>;
@@ -14,13 +14,22 @@ export type FormValueType = Partial<API.Room>;
 export type UpdateFormProps = {
   trigger?: React.ReactElement<any>;
   onOk?: () => void;
+  onCancel?: () => void;
   values: Partial<API.Room>;
+  visible?: boolean; // 受控模式
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
-  const { onOk, values, trigger } = props;
+  const { onOk, values, trigger, visible, onCancel: onCancelProp } = props;
   const [open, setOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+
+  // 受控模式：当 visible 变化时同步内部状态
+  useEffect(() => {
+    if (visible !== undefined) {
+      setOpen(visible);
+    }
+  }, [visible]);
 
   const run = async (data: any) => {
     try {
@@ -39,7 +48,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const onCancel = useCallback(() => {
     setOpen(false);
-  }, []);
+    if (onCancelProp) {
+      onCancelProp();
+    }
+  }, [onCancelProp]);
 
   const onOpen = useCallback(() => {
     setOpen(true);
@@ -224,6 +236,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 };
 
 export default UpdateForm;
+
 
 
 
