@@ -106,12 +106,18 @@ definitions:
       floor:
         description: 楼层
         type: integer
+      height:
+        description: 高度
+        type: integer
       id:
         description: 主键
         type: integer
       images:
         description: 图片 URL（JSON 数组）
         type: string
+      left:
+        description: 左边界
+        type: integer
       original_price:
         description: 原价
         type: number
@@ -127,9 +133,15 @@ definitions:
       status:
         description: 状态：available, occupied, maintenance
         type: string
+      top:
+        description: 上边界
+        type: integer
       updated_at:
         description: 更新时间
         type: string
+      width:
+        description: 宽度
+        type: integer
     type: object
   models.User:
     properties:
@@ -158,6 +170,7 @@ definitions:
         description: 角色：user, admin
         type: string
       status:
+        description: 状态：active, blocked
         type: string
       updated_at:
         description: 更新时间
@@ -254,8 +267,12 @@ definitions:
         type: string
       floor:
         type: integer
+      height:
+        type: integer
       images:
         type: string
+      left:
+        type: integer
       original_price:
         type: number
       price:
@@ -264,6 +281,10 @@ definitions:
         type: string
       room_type:
         type: string
+      top:
+        type: integer
+      width:
+        type: integer
     required:
     - capacity
     - floor
@@ -364,8 +385,12 @@ definitions:
         type: string
       floor:
         type: integer
+      height:
+        type: integer
       images:
         type: string
+      left:
+        type: integer
       original_price:
         type: number
       price:
@@ -374,6 +399,10 @@ definitions:
         type: string
       status:
         type: string
+      top:
+        type: integer
+      width:
+        type: integer
     type: object
 host: nas.yumi.chat:19999
 info:

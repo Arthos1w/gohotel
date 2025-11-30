@@ -31,6 +31,10 @@ type CreateRoomRequest struct {
 	Description   string  `json:"description"`
 	Facilities    string  `json:"facilities"`
 	Images        string  `json:"images"`
+	Left          int     `json:"left"`
+	Top           int     `json:"top"`
+	Width         int     `json:"width"`
+	Height        int     `json:"height"`
 }
 
 // UpdateRoomRequest 更新房间请求
@@ -46,6 +50,10 @@ type UpdateRoomRequest struct {
 	Facilities    string  `json:"facilities"`
 	Images        string  `json:"images"`
 	Status        string  `json:"status"`
+	Left          int     `json:"left"`
+	Top           int     `json:"top"`
+	Width         int     `json:"width"`
+	Height        int     `json:"height"`
 }
 
 // CreateRoom 创建房间
@@ -73,6 +81,10 @@ func (s *RoomService) CreateRoom(req *CreateRoomRequest) (*models.Room, error) {
 		Facilities:    req.Facilities,
 		Images:        req.Images,
 		Status:        "available",
+		Left:          req.Left,
+		Top:           req.Top,
+		Width:         req.Width,
+		Height:        req.Height,
 	}
 
 	// 3. 保存到数据库
@@ -139,6 +151,18 @@ func (s *RoomService) UpdateRoom(id uint, req *UpdateRoomRequest) (*models.Room,
 	}
 	if req.Status != "" {
 		room.Status = req.Status
+	}
+	if req.Left > 0 {
+		room.Left = req.Left
+	}
+	if req.Top > 0 {
+		room.Top = req.Top
+	}
+	if req.Width > 0 {
+		room.Width = req.Width
+	}
+	if req.Height > 0 {
+		room.Height = req.Height
 	}
 
 	// 3. 保存更新

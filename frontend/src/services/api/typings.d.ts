@@ -87,11 +87,15 @@ declare namespace API {
     description?: string;
     facilities?: string;
     floor: number;
+    height?: number;
     images?: string;
+    left?: number;
     original_price?: number;
     price: number;
     room_number: string;
     room_type: string;
+    top?: number;
+    width?: number;
   };
 
   type DeleteUsersRequest = {
@@ -288,10 +292,14 @@ declare namespace API {
     facilities?: string;
     /** 楼层 */
     floor?: number;
+    /** 高度 */
+    height?: number;
     /** 主键 */
     id?: number;
     /** 图片 URL（JSON 数组） */
     images?: string;
+    /** 左边界 */
+    left?: number;
     /** 原价 */
     original_price?: number;
     /** 价格（每晚） */
@@ -302,8 +310,12 @@ declare namespace API {
     room_type?: string;
     /** 状态：available, occupied, maintenance */
     status?: string;
+    /** 上边界 */
+    top?: number;
     /** 更新时间 */
     updated_at?: string;
+    /** 宽度 */
+    width?: number;
   };
 
   type UpdateRoomRequest = {
@@ -313,11 +325,15 @@ declare namespace API {
     description?: string;
     facilities?: string;
     floor?: number;
+    height?: number;
     images?: string;
+    left?: number;
     original_price?: number;
     price?: number;
     room_type?: string;
     status?: string;
+    top?: number;
+    width?: number;
   };
 
   type User = {
@@ -337,6 +353,7 @@ declare namespace API {
     real_name?: string;
     /** 角色：user, admin */
     role?: string;
+    /** 状态：active, blocked */
     status?: string;
     /** 更新时间 */
     updated_at?: string;

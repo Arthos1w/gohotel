@@ -16,7 +16,7 @@ type User struct {
 	RealName   string    `gorm:"size:50" json:"real_name"`                 // 真实姓名
 	Avatar     string    `gorm:"size:255" json:"avatar"`                   // 头像 URL
 	Role       string    `gorm:"default:'user';size:20" json:"role"`       // 角色：user, admin
-	Status     string    `gorm:"default:'active';size:20" json:"status"`
+	Status     string    `gorm:"default:'active';size:20" json:"status"` 	// 状态：active, blocked
 	FirstLogin bool      `gorm:"default:false" json:"first_login"` // 是否首次登录
 	CreatedAt  time.Time `json:"created_at"`                       // 创建时间
 	UpdatedAt  time.Time `json:"updated_at"`                       // 更新时间

@@ -19,6 +19,10 @@ type Room struct {
 	Description   string    `gorm:"type:text" json:"description"`                     // 房间描述
 	Facilities    string    `gorm:"type:text" json:"facilities"`                      // 设施（JSON 字符串）
 	Images        string    `gorm:"type:text" json:"images"`                          // 图片 URL（JSON 数组）
+	Left          int       `gorm:"not null" json:"left"`                            // 左边界
+	Top           int       `gorm:"not null" json:"top"`                             // 上边界
+	Width         int       `gorm:"not null" json:"width"`                           // 宽度
+	Height        int       `gorm:"not null" json:"height"`                          // 高度
 	Status        string    `gorm:"default:'available';size:20;index" json:"status"`  // 状态：available, occupied, maintenance
 	CreatedAt     time.Time `json:"created_at"`                                       // 创建时间
 	UpdatedAt     time.Time `json:"updated_at"`                                       // 更新时间

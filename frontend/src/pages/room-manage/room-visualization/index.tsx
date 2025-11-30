@@ -1,6 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Card, Button, message, Spin, theme, Space, Tag, Tooltip, Divider, Modal, Checkbox } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 import React, { useState, useEffect } from 'react';
 import { DndProvider, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -13,7 +13,7 @@ import DraggableFacilityCard, {
 } from './components/DraggableFacilityCard';
 import { useRequest } from '@umijs/max';
 import { getRooms } from '@/services/api/fangjian';
-import { postRoomsIdOpenApiDelete } from '@/services/api/guanliyuan';
+import { postRoomsIdOpenApiDelete, postRoomsId } from '@/services/api/guanliyuan';
 import Iconfont from '@/components/Iconfont';
 import UpdateForm from '../components/UpdateForm';
 
@@ -249,38 +249,32 @@ const RoomManage: React.FC = () => {
   // 根据楼层筛选设施
   const filteredFacilities = facilities.filter((f) => f.floor === selectedFloor);
 
-  // 当房间数据加载完成后,初始化房间位置
+  // 当房间数据加载完成后,从后端数据初始化房间位置
   useEffect(() => {
     if (rooms && rooms.length > 0) {
-      const savedPositions = localStorage.getItem('roomPositions');
+      const newPositions: RoomPosition[] = [];
 
-      if (savedPositions) {
-        try {
-          const parsed = JSON.parse(savedPositions) as RoomPosition[];
-          const positionsMap = new Map(parsed.map((p: RoomPosition) => [p.id, p]));
-          const newPositions: RoomPosition[] = [];
-
-          rooms.forEach((room: API.Room, index: number) => {
-            if (room.id && positionsMap.has(room.id)) {
-              const savedPos = positionsMap.get(room.id) as RoomPosition;
-              newPositions.push({
-                ...savedPos,
-                width: savedPos.width || DEFAULT_ROOM_WIDTH,
-                height: savedPos.height || DEFAULT_ROOM_HEIGHT,
-              });
-            } else if (room.id) {
-              newPositions.push(generateDefaultPosition(room.id, index));
-            }
-          });
-
-          setRoomPositions(newPositions);
-        } catch (error) {
-          console.error('Failed to parse saved positions:', error);
-          initializeDefaultPositions();
+      rooms.forEach((room: API.Room, index: number) => {
+        if (room.id) {
+          // 优先使用后端存储的位置，如果没有则使用默认位置
+          const hasPosition = room.left !== undefined && room.top !== undefined && 
+                             (room.left !== 0 || room.top !== 0 || room.width !== 0 || room.height !== 0);
+          
+          if (hasPosition) {
+            newPositions.push({
+              id: room.id,
+              left: room.left || 0,
+              top: room.top || 0,
+              width: room.width || DEFAULT_ROOM_WIDTH,
+              height: room.height || DEFAULT_ROOM_HEIGHT,
+            });
+          } else {
+            newPositions.push(generateDefaultPosition(room.id, index));
+          }
         }
-      } else {
-        initializeDefaultPositions();
-      }
+      });
+
+      setRoomPositions(newPositions);
     }
   }, [rooms]);
 
@@ -333,7 +327,6 @@ const RoomManage: React.FC = () => {
       const newPositions = prevPositions.map((pos) =>
         pos.id === id ? { ...pos, left, top } : pos,
       );
-      localStorage.setItem('roomPositions', JSON.stringify(newPositions));
       return newPositions;
     });
   };
@@ -508,7 +501,7 @@ const RoomManage: React.FC = () => {
           newPositions = newPositions.map((p) =>
             sameTypeRoomIds.includes(p.id) ? { ...p, width: newWidth, height: newHeight } : p
           );
-          message.success(`已修改全部楼层 ${itemType} 类型房间的大小`);
+          message.success(`已修改全部楼层 ${itemType} 类型房间的大小，请点击保存布局`);
         } else if (applySameFloorSameType && itemType && rooms) {
           // 修改同楼层同类型房间
           const sameFloorSameTypeRoomIds = rooms
@@ -517,16 +510,15 @@ const RoomManage: React.FC = () => {
           newPositions = newPositions.map((p) =>
             sameFloorSameTypeRoomIds.includes(p.id) ? { ...p, width: newWidth, height: newHeight } : p
           );
-          message.success(`已修改 ${floor} 楼 ${itemType} 类型房间的大小`);
+          message.success(`已修改 ${floor} 楼 ${itemType} 类型房间的大小，请点击保存布局`);
         } else {
           // 只修改当前房间
           newPositions = newPositions.map((p) =>
             p.id === id ? { ...p, width: newWidth, height: newHeight } : p
           );
-          message.success('房间大小已调整');
+          message.success('房间大小已调整，请点击保存布局');
         }
 
-        localStorage.setItem('roomPositions', JSON.stringify(newPositions));
         return newPositions;
       });
     } else if (type === 'facility') {
@@ -593,23 +585,67 @@ const RoomManage: React.FC = () => {
     reloadRooms();
   };
 
-  // 保存布局
-  const handleSaveLayout = () => {
-    localStorage.setItem('roomPositions', JSON.stringify(roomPositions));
-    localStorage.setItem('floorFacilities', JSON.stringify(facilities));
-    message.success('布局已保存');
+  // 保存布局状态
+  const [saving, setSaving] = useState(false);
+
+  // 保存布局 - 调用API更新房间位置到数据库
+  const handleSaveLayout = async () => {
+    if (roomPositions.length === 0) {
+      message.warning('没有需要保存的房间布局');
+      return;
+    }
+
+    setSaving(true);
+    const hideLoading = message.loading('正在保存房间布局...', 0);
+
+    try {
+      // 批量更新所有房间的位置信息
+      const updatePromises = roomPositions.map((pos) =>
+        postRoomsId(
+          { id: pos.id },
+          {
+            left: pos.left,
+            top: pos.top,
+            width: pos.width,
+            height: pos.height,
+          }
+        )
+      );
+
+      await Promise.all(updatePromises);
+      
+      // 设施仍然保存到 localStorage（后续会改为单独的表）
+      localStorage.setItem('floorFacilities', JSON.stringify(facilities));
+      
+      hideLoading();
+      message.success(`布局已保存，共更新 ${roomPositions.length} 个房间`);
+    } catch (error) {
+      hideLoading();
+      console.error('保存布局失败:', error);
+      message.error('保存布局失败，请重试');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // 重置布局
   const handleResetLayout = () => {
-    initializeDefaultPositions();
+    // 重置房间位置为默认网格布局
+    if (rooms) {
+      const positions = rooms
+        .filter((room: API.Room) => room.id !== undefined)
+        .map((room: API.Room, index: number) => generateDefaultPosition(room.id!, index));
+      setRoomPositions(positions);
+    }
+    
+    // 只清除当前楼层的设施
     setFacilities((prev) => {
       const newFacilities = prev.filter((f) => f.floor !== selectedFloor);
       localStorage.setItem('floorFacilities', JSON.stringify(newFacilities));
       return newFacilities;
     });
-    localStorage.removeItem('roomPositions');
-    message.success('当前楼层布局已重置');
+    
+    message.success('当前楼层布局已重置（请点击保存布局以同步到服务器）');
   };
 
   // 获取类型名称
@@ -657,7 +693,13 @@ const RoomManage: React.FC = () => {
         <Button key="reset" onClick={handleResetLayout}>
           重置布局
         </Button>,
-        <Button key="save" type="primary" onClick={handleSaveLayout}>
+        <Button 
+          key="save" 
+          type="primary" 
+          icon={<SaveOutlined />}
+          loading={saving}
+          onClick={handleSaveLayout}
+        >
           保存布局
         </Button>,
       ]}

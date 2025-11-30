@@ -1882,6 +1882,10 @@ const docTemplate = `{
                     "description": "楼层",
                     "type": "integer"
                 },
+                "height": {
+                    "description": "高度",
+                    "type": "integer"
+                },
                 "id": {
                     "description": "主键",
                     "type": "integer"
@@ -1889,6 +1893,10 @@ const docTemplate = `{
                 "images": {
                     "description": "图片 URL（JSON 数组）",
                     "type": "string"
+                },
+                "left": {
+                    "description": "左边界",
+                    "type": "integer"
                 },
                 "original_price": {
                     "description": "原价",
@@ -1910,9 +1918,17 @@ const docTemplate = `{
                     "description": "状态：available, occupied, maintenance",
                     "type": "string"
                 },
+                "top": {
+                    "description": "上边界",
+                    "type": "integer"
+                },
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string"
+                },
+                "width": {
+                    "description": "宽度",
+                    "type": "integer"
                 }
             }
         },
@@ -1952,6 +1968,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "description": "状态：active, blocked",
                     "type": "string"
                 },
                 "updated_at": {
@@ -2097,8 +2114,14 @@ const docTemplate = `{
                 "floor": {
                     "type": "integer"
                 },
+                "height": {
+                    "type": "integer"
+                },
                 "images": {
                     "type": "string"
+                },
+                "left": {
+                    "type": "integer"
                 },
                 "original_price": {
                     "type": "number"
@@ -2111,6 +2134,12 @@ const docTemplate = `{
                 },
                 "room_type": {
                     "type": "string"
+                },
+                "top": {
+                    "type": "integer"
+                },
+                "width": {
+                    "type": "integer"
                 }
             }
         },
@@ -2251,8 +2280,14 @@ const docTemplate = `{
                 "floor": {
                     "type": "integer"
                 },
+                "height": {
+                    "type": "integer"
+                },
                 "images": {
                     "type": "string"
+                },
+                "left": {
+                    "type": "integer"
                 },
                 "original_price": {
                     "type": "number"
@@ -2265,6 +2300,12 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "top": {
+                    "type": "integer"
+                },
+                "width": {
+                    "type": "integer"
                 }
             }
         }
