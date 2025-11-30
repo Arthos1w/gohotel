@@ -13,13 +13,14 @@ import DraggableFacilityCard, {
 } from './components/DraggableFacilityCard';
 import { useRequest } from '@umijs/max';
 import { getRooms } from '@/services/api/fangjian';
-import { postRoomsIdOpenApiDelete, postRoomsId } from '@/services/api/guanliyuan';
 import {
-  getFacilities,
-  postFacilities,
-  deleteFacilitiesId,
-  postFacilitiesBatch,
-} from '@/services/api/sheshi';
+  postRoomsIdOpenApiDelete,
+  postRoomsId,
+  getAdminFacilities,
+  postAdminFacilities,
+  postAdminFacilitiesIdOpenApiDelete,
+  postAdminFacilitiesBatch,
+} from '@/services/api/guanliyuan';
 import Iconfont from '@/components/Iconfont';
 import UpdateForm from '../components/UpdateForm';
 
@@ -57,32 +58,6 @@ const CustomDragLayer: React.FC = () => {
   if (!isDragging || !currentOffset || !item) {
     return null;
   }
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'available':
-        return 'success';
-      case 'occupied':
-        return 'error';
-      case 'maintenance':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
-
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'available':
-        return '可用';
-      case 'occupied':
-        return '占用';
-      case 'maintenance':
-        return '维护中';
-      default:
-        return '未知';
-    }
-  };
 
   // 渲染房间拖动预览
   if (itemType === ItemTypes.ROOM_CARD && item.room) {
@@ -144,19 +119,26 @@ const CustomDragLayer: React.FC = () => {
             }}
           >
             <div style={{ textAlign: 'center', width: '100%' }}>
+              <Iconfont 
+                name="bed" 
+                size={26} 
+                color={
+                  room.status === 'available' ? '#52c41a' :
+                  room.status === 'occupied' ? '#ff4d4f' :
+                  room.status === 'maintenance' ? '#faad14' : '#8c8c8c'
+                }
+              />
               <div
                 style={{
-                  fontSize: '20px',
+                  fontSize: '18px',
                   fontWeight: 'bold',
-                  marginBottom: 8,
+                  marginTop: 6,
                   color: '#000',
+                  lineHeight: 1,
                 }}
               >
                 {room.room_number}
               </div>
-              <Tag color={getStatusColor(room.status)} style={{ margin: 0, fontSize: '12px' }}>
-                {getStatusText(room.status)}
-              </Tag>
             </div>
           </Card>
         </div>
@@ -253,7 +235,7 @@ const RoomManage: React.FC = () => {
     data: facilitiesData,
     loading: facilitiesLoading,
     run: reloadFacilities,
-  } = useRequest<API.Facility[]>(() => getFacilities({ page_size: 500 }), {
+  } = useRequest<API.Facility[]>(() => getAdminFacilities({ page_size: 500 }), {
     formatResult: (res: any): API.Facility[] => (Array.isArray(res) ? res : res.data || []),
     onSuccess: (data) => {
       // 将 API 数据转换为本地 Facility 格式
@@ -432,7 +414,7 @@ const RoomManage: React.FC = () => {
 
     try {
       // 调用 API 创建设施
-      const result = await postFacilities({
+      const result = await postAdminFacilities({
         type,
         floor: selectedFloor,
         left: position.left,
@@ -482,7 +464,7 @@ const RoomManage: React.FC = () => {
 
     try {
       // 调用 API 删除设施
-      await deleteFacilitiesId({ id: Number(id) });
+      await postAdminFacilitiesIdOpenApiDelete({ id: Number(id) });
       setFacilities((prev) => prev.filter((f) => f.id !== id));
       // 同时从初始数据中移除
       setInitialFacilities((prev) => prev.filter((f) => f.id !== id));
@@ -708,7 +690,7 @@ const RoomManage: React.FC = () => {
 
       // 只更新有变化的设施
       if (changedFacilities.length > 0) {
-        const facilityBatchUpdate = postFacilitiesBatch({
+        const facilityBatchUpdate = postAdminFacilitiesBatch({
           items: changedFacilities.map((f) => ({
             id: f.id as number,
             left: f.left,
