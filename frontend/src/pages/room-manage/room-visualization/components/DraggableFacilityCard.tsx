@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, Button, Popconfirm } from 'antd';
+import { Card, Button, Popconfirm, Space } from 'antd';
 import { DeleteOutlined, GatewayOutlined, RedoOutlined } from '@ant-design/icons';
 import { useDrag } from 'react-dnd';
 import Iconfont, { IconName } from '@/components/Iconfont';
@@ -14,7 +14,6 @@ export const FacilityTypes = {
   STORAGE: 'storage',          // 储物间
   REST: 'rest',                // 休息区
   RECEPTION: 'reception',      // 前台
-  BED: 'bed',                  // 床位区
   MICROWAVE: 'microwave',      // 微波炉/餐饮区
 } as const;
 
@@ -91,14 +90,6 @@ export const FacilityConfig: Record<FacilityType, {
     color: '#faad14',
     bgColor: '#fffbe6',
     defaultWidth: 140,
-    defaultHeight: 80,
-  },
-  bed: {
-    name: '床位区',
-    icon: 'bed',
-    color: '#597ef7',
-    bgColor: '#f0f5ff',
-    defaultWidth: 100,
     defaultHeight: 80,
   },
   microwave: {
@@ -273,6 +264,7 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
   return (
     <div
       ref={isResizing ? undefined : drag as any}
+      className="facility-card-container"
       style={{
         position: 'absolute',
         left: facility.left,
@@ -342,57 +334,6 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
           )}
         </div>
 
-        {/* 悬浮操作按钮 */}
-        <div
-          className="facility-card-actions"
-          style={{
-            position: 'absolute',
-            top: 2,
-            right: 2,
-            display: 'none',
-            gap: 2,
-          }}
-        >
-          {onResizeComplete && (
-            <Button
-              type="text"
-              size="small"
-              icon={<GatewayOutlined />}
-              onClick={handleEnterResizeMode}
-              style={{ fontSize: 10, padding: 2, minWidth: 20, height: 20 }}
-              title="调整大小"
-            />
-          )}
-          {onRotate && (
-            <Button
-              type="text"
-              size="small"
-              icon={<RedoOutlined />}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRotate(facility.id);
-              }}
-              style={{ fontSize: 10, padding: 2, minWidth: 20, height: 20 }}
-              title="旋转90°"
-            />
-          )}
-          <Popconfirm
-            title="确定要删除这个设施吗？"
-            onConfirm={() => onDelete(facility.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={(e) => e.stopPropagation()}
-              style={{ fontSize: 10, padding: 2, minWidth: 20, height: 20 }}
-            />
-          </Popconfirm>
-        </div>
-
         {/* 调整大小模式下的拖拽手柄 */}
         {isResizing && (
           <div
@@ -414,8 +355,70 @@ const DraggableFacilityCard: React.FC<DraggableFacilityCardProps> = ({
         )}
       </Card>
 
+      {/* 悬浮操作按钮 - 根据位置在卡片上方或下方 */}
+      <div
+        className="facility-card-actions"
+        style={{
+          position: 'absolute',
+          ...(facility.top < 30 
+            ? { bottom: -26 }  // 靠近顶部时，工具栏显示在下方
+            : { top: -26 }     // 否则显示在上方
+          ),
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'none',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: 4,
+          padding: '2px 6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          zIndex: 10,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Space size={0}>
+          {onResizeComplete && (
+            <Button
+              type="text"
+              size="small"
+              icon={<GatewayOutlined />}
+              onClick={handleEnterResizeMode}
+              style={{ fontSize: 12, padding: '0 4px', height: 22 }}
+              title="调整大小"
+            />
+          )}
+          {onRotate && (
+            <Button
+              type="text"
+              size="small"
+              icon={<RedoOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRotate(facility.id);
+              }}
+              style={{ fontSize: 12, padding: '0 4px', height: 22 }}
+              title="旋转90°"
+            />
+          )}
+          <Popconfirm
+            title="确定要删除这个设施吗？"
+            onConfirm={() => onDelete(facility.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: 12, padding: '0 4px', height: 22 }}
+            />
+          </Popconfirm>
+        </Space>
+      </div>
+
       <style>{`
-        .ant-card:hover .facility-card-actions {
+        .facility-card-container:hover .facility-card-actions {
           display: flex !important;
         }
       `}</style>
