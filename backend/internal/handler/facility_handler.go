@@ -61,7 +61,7 @@ func (h *FacilityHandler) CreateFacility(c *gin.Context) {
 // @Failure 401 {object} errors.ErrorResponse
 // @Failure 403 {object} errors.ErrorResponse
 // @Failure 404 {object} errors.ErrorResponse
-// @Router /api/facilities/{id} [put]
+// @Router /api/facilities/{id} [post]
 func (h *FacilityHandler) UpdateFacility(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -195,7 +195,7 @@ func (h *FacilityHandler) FindFacilitiesByFloor(c *gin.Context) {
 // @Failure 400 {object} errors.ErrorResponse
 // @Failure 401 {object} errors.ErrorResponse
 // @Failure 403 {object} errors.ErrorResponse
-// @Router /api/facilities/batch [put]
+// @Router /api/facilities/batch [post]
 func (h *FacilityHandler) BatchUpdateFacilities(c *gin.Context) {
 	var req service.BatchUpdateFacilitiesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

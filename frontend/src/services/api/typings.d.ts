@@ -329,6 +329,11 @@ declare namespace API {
     id: number;
   };
 
+  type postFacilitiesIdParams = {
+    /** 设施 ID */
+    id: number;
+  };
+
   type postRoomsId_openAPI_deleteParams = {
     /** 房间 ID */
     id: number;
@@ -336,11 +341,6 @@ declare namespace API {
 
   type postRoomsIdParams = {
     /** 房间 ID */
-    id: number;
-  };
-
-  type putFacilitiesIdParams = {
-    /** 设施 ID */
     id: number;
   };
 

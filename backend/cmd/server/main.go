@@ -208,9 +208,9 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 			facilitiesAuth.Use(middleware.AuthMiddleware())
 			{
 				facilitiesAuth.POST("", facilityHandler.CreateFacility)             // 创建设施
-				facilitiesAuth.PUT("/:id", facilityHandler.UpdateFacility)          // 更新设施
+				facilitiesAuth.POST("/:id", facilityHandler.UpdateFacility)          // 更新设施
 				facilitiesAuth.DELETE("/:id", facilityHandler.DeleteFacility)       // 删除设施
-				facilitiesAuth.PUT("/batch", facilityHandler.BatchUpdateFacilities) // 批量更新设施位置
+				facilitiesAuth.POST("/batch", facilityHandler.BatchUpdateFacilities) // 批量更新设施位置
 			}
 		}
 

@@ -1155,7 +1155,7 @@ const docTemplate = `{
             }
         },
         "/api/facilities/batch": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -1296,7 +1296,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []

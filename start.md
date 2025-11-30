@@ -972,7 +972,7 @@ Gin 是一个非常流行的高性能 Go Web 框架，它的 API 设计简洁。
 
 *   **路由 (Routing)**:
     *   `gin.Default()`: 创建一个带有默认中间件（Logger 和 Recovery）的 Gin 引擎。
-    *   `router.GET()`, `router.POST()`, `router.PUT()`, `router.DELETE()`: 定义不同 HTTP 方法的路由。
+    *   `router.GET()`, `router.POST()`: 定义不同 HTTP 方法的路由。
     *   `router.Group()`: 为一组路由创建一个共享相同前缀或中间件的路由组。
 
 *   **请求处理 (Request Handling)**: `c` 通常是 `*gin.Context` 的实例。

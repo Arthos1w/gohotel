@@ -1321,7 +1321,7 @@ paths:
       summary: 根据 ID 查找设施
       tags:
       - 设施
-    put:
+    post:
       consumes:
       - application/json
       description: 更新设施
@@ -1366,7 +1366,7 @@ paths:
       tags:
       - 设施
   /api/facilities/batch:
-    put:
+    post:
       consumes:
       - application/json
       description: 批量更新设施的位置和尺寸信息

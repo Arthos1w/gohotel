@@ -50,16 +50,16 @@ export async function getFacilitiesId(
   });
 }
 
-/** 更新设施 更新设施 PUT /api/facilities/${param0} */
-export async function putFacilitiesId(
+/** 更新设施 更新设施 POST /api/facilities/${param0} */
+export async function postFacilitiesId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.putFacilitiesIdParams,
+  params: API.postFacilitiesIdParams,
   body: API.UpdateFacilityRequest,
   options?: { [key: string]: any }
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.Facility>(`/api/facilities/${param0}`, {
-    method: "PUT",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -83,13 +83,13 @@ export async function deleteFacilitiesId(
   });
 }
 
-/** 批量更新设施位置 批量更新设施的位置和尺寸信息 PUT /api/facilities/batch */
-export async function putFacilitiesBatch(
+/** 批量更新设施位置 批量更新设施的位置和尺寸信息 POST /api/facilities/batch */
+export async function postFacilitiesBatch(
   body: API.BatchUpdateFacilitiesRequest,
   options?: { [key: string]: any }
 ) {
   return request<Record<string, any>>("/api/facilities/batch", {
-    method: "PUT",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },

@@ -1148,7 +1148,7 @@
             }
         },
         "/api/facilities/batch": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -1289,7 +1289,7 @@
                     }
                 }
             },
-            "put": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
