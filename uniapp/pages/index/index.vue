@@ -42,7 +42,7 @@
             v-model="currentSwiperIndex"
             :data="hotelImages"
             width="100%"
-            height="480"
+            height="400"
             autoplay
             loop
             indicator
@@ -176,21 +176,24 @@
       height="80vh" 
       :safe-area-inset-bottom="true"
       width="100%"
+      @close="calendarVisible = false"
     >
       <view class="calendar-container">
         <!-- 头部 -->
         <view class="calendar-header">
           <text class="title">选择日期</text>
-          <view class="close-btn" @click="showCalendar = false">
+          <view class="close-btn" @click="closeCalendar">
             <TnIcon name="close" size="40" color="#999" />
           </view>
         </view>
         
         <!-- 移除了自定义的状态栏和星期栏，直接使用组件自带的以避免布局冲突 -->
 
-        <!-- 日期选择区域 - 移除scroll-view，防止高度塌陷 -->
+        <!-- 日期选择区域 - 延迟渲染确保正确初始化 -->
         <view class="calendar-body">
           <TnCalendar 
+            v-if="calendarVisible"
+            :key="calendarKey"
             v-model="selectedDateRange"
             mode="range"
             :min-date="minSelectDate"
@@ -203,6 +206,10 @@
             range-end-desc="离店"
             @change="onDateRangeChange"
           />
+          <!-- 加载提示 -->
+          <view v-if="!calendarVisible && showCalendar" class="calendar-loading">
+            <text>加载中...</text>
+          </view>
         </view>
         
         <!-- 底部按钮 -->
@@ -260,9 +267,11 @@ const loading = ref(false)
 const checkInDate = ref(null)  // Date对象
 const checkOutDate = ref(null) // Date对象
 const showCalendar = ref(false)
+const calendarVisible = ref(false) // 控制日历组件的实际渲染
 const selectedDateRange = ref([])
 const tempCheckIn = ref(null)
 const tempCheckOut = ref(null)
+const calendarKey = ref(0) // 用于强制重新渲染日历组件
 
 // 计算入住天数
 const nights = computed(() => {
@@ -341,10 +350,13 @@ const getDateLabel = (date, suffix) => {
   return suffix
 }
 
-// 解析日期字符串
+// 解析日期字符串（支持 YYYY-MM-DD 和 YYYY/MM/DD 两种格式）
 const parseDate = (dateStr) => {
   if (!dateStr) return null
-  const [year, month, day] = dateStr.split('-').map(Number)
+  // 将 / 替换为 - 统一处理
+  const normalizedStr = dateStr.replace(/\//g, '-')
+  const [year, month, day] = normalizedStr.split('-').map(Number)
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null
   return new Date(year, month - 1, day)
 }
 
@@ -364,7 +376,14 @@ const openDatePicker = () => {
     selectedDateRange.value = []
   }
   
+  // 先打开弹窗
   showCalendar.value = true
+  
+  // 延迟渲染日历组件，确保 Popup 动画完成后再初始化
+  setTimeout(() => {
+    calendarKey.value++
+    calendarVisible.value = true
+  }, 300)
 }
 
 // 日期范围变化
@@ -386,13 +405,19 @@ const confirmDateSelection = () => {
   if (tempCheckIn.value && tempCheckOut.value) {
     checkInDate.value = tempCheckIn.value
     checkOutDate.value = tempCheckOut.value
-    showCalendar.value = false
+    closeCalendar()
     
     uni.showToast({
       title: `已选择${nights.value}晚`,
       icon: 'none'
     })
   }
+}
+
+// 关闭日历
+const closeCalendar = () => {
+  showCalendar.value = false
+  calendarVisible.value = false
 }
 
 // 打开地图
@@ -614,10 +639,20 @@ const goToPromotion = () => {
 
 /* 酒店横幅 */
 .hotel-banner {
-  width: 100%;
-  height: 480rpx;
+  width: calc(100% - 48rpx);
+  margin: 24rpx;
+  height: 400rpx;
   background-color: #fff;
   position: relative;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  
+  // 确保 swiper 组件也有圆角
+  :deep(.tn-swiper) {
+    border-radius: 24rpx;
+    overflow: hidden;
+  }
   
   .swiper-item {
     width: 100%;
@@ -910,6 +945,48 @@ const goToPromotion = () => {
   .calendar-body {
     height: calc(80vh - 100rpx - 140rpx);
     overflow-y: auto;
+    
+    .calendar-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 400rpx;
+      color: #999;
+      font-size: 28rpx;
+    }
+    
+    // 覆盖日历组件样式，确保在小程序中正确显示
+    :deep(.tn-calendar) {
+      width: 100%;
+    }
+    
+    :deep(.tn-calendar__data) {
+      height: 650rpx !important;
+      min-height: 650rpx !important;
+    }
+    
+    // swiper 在小程序中必须有明确的固定高度
+    :deep(.tn-calendar__data__swiper) {
+      height: 650rpx !important;
+      min-height: 650rpx !important;
+    }
+    
+    :deep(.tn-calendar__data__swiper-item) {
+      height: 650rpx !important;
+      overflow: visible !important;
+    }
+    
+    :deep(.tn-calendar__data__dates) {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      min-height: 600rpx;
+    }
+    
+    :deep(.tn-calendar__data__date) {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
   }
   
   .calendar-footer {
