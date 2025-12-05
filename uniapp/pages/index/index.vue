@@ -1,21 +1,13 @@
 <template>
   <view class="container">
     <!-- 自定义导航栏 -->
-    <TnNavbar fixed :bottom-shadow="false" bg-color="#ffffff" :placeholder="true">
+    <TnNavbar fixed :bottom-shadow="false" bg-color="rgba(255, 255, 255, 0.95)" :placeholder="true" class="navbar-glass">
       <template #back>
         <view class="navbar-left">
-          <TnIcon name="location-fill" color="#E74C3C" size="36" />
+          <view class="location-icon-wrapper">
+            <TnIcon name="location-fill" color="#C29D71" size="32" />
+          </view>
           <text class="hotel-name">{{ hotelData?.name || '七天酒店' }}</text>
-        </view>
-      </template>
-      <template #right>
-        <view class="navbar-right">
-          <view class="icon-btn" @click="showMoreOptions">
-            <TnIcon name="more-vertical" color="#333" size="38" />
-          </view>
-          <view class="icon-btn" @click="scanQRCode">
-            <TnIcon name="scan" color="#333" size="38" />
-          </view>
         </view>
       </template>
     </TnNavbar>
@@ -38,61 +30,84 @@
       <template v-else>
         <!-- 酒店图片轮播 -->
         <view class="hotel-banner">
+          <view class="banner-overlay"></view>
           <TnSwiper
             v-model="currentSwiperIndex"
             :data="hotelImages"
             width="100%"
-            height="400"
+            height="360"
             autoplay
             loop
             indicator
             indicator-type="dot"
             indicator-bg-color="rgba(255,255,255,0.4)"
-            indicator-active-bg-color="#fff"
+            indicator-active-bg-color="#C29D71"
           >
             <template #default="{ data }">
               <view class="swiper-item">
                 <image class="banner-img" :src="data" mode="aspectFill"></image>
+                <view class="image-gradient"></view>
               </view>
             </template>
           </TnSwiper>
+          <view class="image-count-badge">
+            <TnIcon name="image" color="#fff" size="24" />
+            <text>{{ currentSwiperIndex + 1 }}/{{ hotelImages.length }}</text>
+          </view>
         </view>
 
         <!-- 酒店地址 -->
         <view class="address-section" @click="openMap">
-          <TnIcon name="location-fill" color="#333" size="36" class="address-icon" />
+          <view class="address-icon-wrapper">
+            <TnIcon name="location-fill" color="#C29D71" size="36" class="address-icon" />
+          </view>
           <text class="address-text">{{ address }}</text>
+          <view class="address-arrow">
+            <TnIcon name="right" color="#999" size="28" />
+          </view>
         </view>
 
         <!-- 预订信息 -->
         <view class="booking-card" @click="openDatePicker">
+          <view class="card-header">
+            <text class="card-title">选择日期</text>
+            <view class="edit-icon">
+              <TnIcon name="edit" color="#C29D71" size="28" />
+            </view>
+          </view>
+          
           <view class="booking-dates">
             <view class="date-column">
               <text class="label">{{ checkInLabel }}</text>
               <view class="date-row">
                 <text class="date">{{ formatDisplayDate(checkInDate) }}</text>
-                <text class="week">{{ getWeekDay(checkInDate) }}</text>
+                <text class="weekday">{{ getWeekDay(checkInDate) }}</text>
               </view>
             </view>
 
-            <view class="nights-badge-outline">
-              <text class="count">共{{ nights }}晚</text>
-              <TnIcon name="right" size="20" color="#999" />
+            <view class="nights-badge">
+              <view class="arrow-icon">
+                <TnIcon name="right" color="#C29D71" size="32" />
+              </view>
+              <text class="count">{{ nights }}晚</text>
             </view>
 
             <view class="date-column right">
               <text class="label">{{ checkOutLabel }}</text>
               <view class="date-row">
-                <text class="week">{{ getWeekDay(checkOutDate) }}</text>
                 <text class="date">{{ formatDisplayDate(checkOutDate) }}</text>
+                <text class="weekday">{{ getWeekDay(checkOutDate) }}</text>
               </view>
             </view>
           </view>
 
           <!-- 搜索框 -->
           <view class="search-wrapper" @click.stop="goToSearch">
-             <TnIcon name="search" color="#ccc" size="32" class="search-icon" />
-             <text class="search-placeholder">输入关键词搜索酒店</text>
+             <TnIcon name="search" color="#C29D71" size="32" class="search-icon" />
+             <text class="search-placeholder">搜索房型、服务...</text>
+             <view class="search-arrow">
+               <TnIcon name="right" color="#ccc" size="28" />
+             </view>
           </view>
 
           <!-- 立即预订按钮 -->
@@ -102,65 +117,102 @@
                size="xl" 
                width="100%" 
                height="100rpx"
-               bg-color="#C29D71"
+               bg-color="linear-gradient(135deg, #D4B184 0%, #C29D71 50%, #B88A5E 100%)"
                text-color="#FFFFFF"
                @click.stop="handleBooking"
              >
-               <text class="btn-text">立即预定</text>
+               <view class="btn-content">
+                 <TnIcon name="calendar" color="#fff" size="32" />
+                 <text class="btn-text">立即预订</text>
+               </view>
              </TnButton>
           </view>
           
           <view class="guarantee-bar">
-            <text>官方渠道预订享低价保证</text>
+            <view class="guarantee-icon">
+              <TnIcon name="check-circle-fill" color="#52C41A" size="28" />
+            </view>
+            <text>官方渠道 · 低价保证 · 安心入住</text>
           </view>
         </view>
 
         <!-- 功能入口 -->
         <view class="feature-grid">
-          <view class="feature-card" @click="navigateTo('cinema')">
-            <view class="feature-text">
+          <view class="feature-card cinema" @click="navigateTo('cinema')">
+            <view class="feature-bg-icon">
+              <TnIcon name="video-fill" color="rgba(194, 157, 113, 0.1)" size="80" />
+            </view>
+            <view class="feature-content">
+              <view class="feature-icon cinema-icon">
+                <TnIcon name="video-fill" color="#C29D71" size="44" />
+              </view>
               <text class="title">影院足道</text>
-              <text class="desc">官方自营 ></text>
+              <text class="desc">官方自营</text>
             </view>
-            <view class="feature-icon cinema-icon">
-               <TnIcon name="video-fill" color="#E74C3C" size="44" />
+            <view class="feature-arrow">
+              <TnIcon name="right" color="#ddd" size="28" />
             </view>
           </view>
-          <view class="feature-card" @click="navigateTo('points')">
-            <view class="feature-text">
+          
+          <view class="feature-card points" @click="navigateTo('points')">
+            <view class="feature-bg-icon">
+              <TnIcon name="gift-fill" color="rgba(194, 157, 113, 0.1)" size="80" />
+            </view>
+            <view class="feature-content">
+              <view class="feature-icon points-icon">
+                <TnIcon name="gift-fill" color="#C29D71" size="44" />
+              </view>
               <text class="title">积分商城</text>
-              <text class="desc">体验兑换 ></text>
+              <text class="desc">体验兑换</text>
             </view>
-            <view class="feature-icon points-icon">
-               <TnIcon name="gift-fill" color="#3498DB" size="44" />
+            <view class="feature-arrow">
+              <TnIcon name="right" color="#ddd" size="28" />
             </view>
           </view>
-          <view class="feature-card" @click="navigateTo('vip')">
-            <view class="feature-text">
-              <text class="title">升级会员</text>
-              <text class="desc">更多折扣 ></text>
+          
+          <view class="feature-card vip" @click="navigateTo('vip')">
+            <view class="feature-bg-icon">
+              <TnIcon name="vip-fill" color="rgba(194, 157, 113, 0.1)" size="80" />
             </view>
-            <view class="feature-icon vip-icon">
-               <TnIcon name="vip-fill" color="#F39C12" size="44" />
+            <view class="feature-content">
+              <view class="feature-icon vip-icon">
+                <TnIcon name="vip-fill" color="#C29D71" size="44" />
+              </view>
+              <text class="title">升级会员</text>
+              <text class="desc">更多折扣</text>
+            </view>
+            <view class="feature-arrow">
+              <TnIcon name="right" color="#ddd" size="28" />
             </view>
           </view>
         </view>
 
         <!-- 促销通告 -->
         <view class="notice-section" v-if="true">
-           <TnNoticeBar 
-             :data="['双11特惠活动火热进行中！','新用户注册立享88元大礼包']" 
-             direction="vertical" 
-             left-icon="sound"
-             bg-color="#FFF4E5"
-             color="#E67E22"
-           />
+          <view class="notice-wrapper">
+            <TnNoticeBar 
+              :data="['🎉 双11特惠活动火热进行中！','🎁 新用户注册立享88元大礼包','✨ 会员专享每日折扣优惠']" 
+              direction="vertical" 
+              left-icon="sound"
+              bg-color="linear-gradient(135deg, #FFF9F0 0%, #FFF4E5 100%)"
+              color="#E67E22"
+            />
+          </view>
         </view>
 
         <!-- 促销横幅 -->
         <view class="promotion-banner" @click="goToPromotion">
           <image class="promotion-img" :src="promotionImage" mode="aspectFill"></image>
-          <view class="promotion-tag">限时特惠</view>
+          <view class="promotion-overlay"></view>
+          <view class="promotion-content">
+            <view class="promotion-tag">
+              <text class="tag-text">限时特惠</text>
+            </view>
+            <view class="promotion-info">
+              <text class="promotion-title">周年庆大促</text>
+              <text class="promotion-subtitle">立享5折优惠 ></text>
+            </view>
+          </view>
         </view>
       </template>
       
@@ -242,8 +294,6 @@ import TnPopup from '@/uni_modules/tuniaoui-vue3/components/popup/src/popup.vue'
 import TnCalendar from '@/uni_modules/tuniaoui-vue3/components/calendar/src/calendar.vue'
 import TnNavbar from '@/uni_modules/tuniaoui-vue3/components/navbar/src/navbar.vue'
 import TnButton from '@/uni_modules/tuniaoui-vue3/components/button/src/button.vue'
-import TnSearchBox from '@/uni_modules/tuniaoui-vue3/components/search-box/src/search-box.vue'
-import TnTag from '@/uni_modules/tuniaoui-vue3/components/tag/src/tag.vue'
 import TnNoticeBar from '@/uni_modules/tuniaoui-vue3/components/notice-bar/src/notice-bar.vue'
 
 // 状态栏高度
@@ -505,19 +555,34 @@ onLoad((options) => {
 const loadHotelData = async () => {
   try {
     loading.value = true
-    const data = await hotel.getHotelDetail(hotelId.value)
-    hotelData.value = data
-    
-    // 更新页面数据
-    if (data.images && data.images.length > 0) {
-      hotelImages.value = data.images
-    }
-    if (data.address) {
-      address.value = data.address
+    // 尝试调用API，如果失败则使用模拟数据
+    try {
+      const data = await hotel.getHotelDetail(hotelId.value)
+      hotelData.value = data
+      
+      if (data.images && data.images.length > 0) {
+        hotelImages.value = data.images
+      }
+      if (data.address) {
+        address.value = data.address
+      }
+    } catch (e) {
+      console.log('API调用失败，使用模拟数据')
+      // 模拟数据
+      hotelData.value = {
+        name: '七天酒店',
+        address: '湖北省武汉市硚口区晴川街道沿河大道246号',
+        latitude: 30.56,
+        longitude: 114.28,
+        images: [
+          'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
+          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+          'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&q=80'
+        ]
+      }
     }
   } catch (error) {
     console.error('加载酒店数据失败:', error)
-    // 使用默认数据
   } finally {
     loading.value = false
   }
@@ -582,21 +647,63 @@ const goToPromotion = () => {
 .container {
   width: 100%;
   height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, #F8F8F8 0%, #FAFAFA 100%);
 }
 
+/* 导航栏玻璃效果 */
+.navbar-glass {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 导航栏左侧 */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  white-space: nowrap;
+  
+  .location-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.hotel-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  white-space: nowrap;
+  letter-spacing: 0.5rpx;
+}
 /* 骨架屏 */
 .skeleton-banner {
-  width: 100%;
-  height: 480rpx;
+  width: calc(100% - 48rpx);
+  margin: 24rpx;
+  height: 360rpx;
   background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
+  border-radius: 24rpx;
 }
 
 .skeleton-address {
   padding: 32rpx 40rpx;
   background-color: #fff;
+  margin: 0 24rpx;
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
   
   .skeleton-line {
     height: 32rpx;
@@ -613,7 +720,8 @@ const goToPromotion = () => {
   justify-content: space-between;
   padding: 40rpx;
   background-color: #fff;
-  margin-top: 20rpx;
+  margin: 0 24rpx;
+  border-radius: 32rpx;
   
   .skeleton-block {
     width: 180rpx;
@@ -641,17 +749,34 @@ const goToPromotion = () => {
 .hotel-banner {
   width: calc(100% - 48rpx);
   margin: 24rpx;
-  height: 400rpx;
+  height: 360rpx;
   background-color: #fff;
   position: relative;
   border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12rpx 40rpx rgba(194, 157, 113, 0.15);
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0, 0, 0, 0.3) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
   
   // 确保 swiper 组件也有圆角
   :deep(.tn-swiper) {
     border-radius: 24rpx;
     overflow: hidden;
+    height: 100% !important;
   }
   
   .swiper-item {
@@ -662,20 +787,37 @@ const goToPromotion = () => {
     .banner-img {
       width: 100%;
       height: 100%;
+      transition: transform 0.3s ease;
     }
     
-    .image-counter {
+    .image-gradient {
       position: absolute;
-      right: 24rpx;
-      bottom: 24rpx;
-      background-color: rgba(0, 0, 0, 0.5);
-      padding: 8rpx 20rpx;
-      border-radius: 20rpx;
-      
-      text {
-        color: #fff;
-        font-size: 24rpx;
-      }
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100rpx;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+      z-index: 1;
+    }
+  }
+  
+  .image-count-badge {
+    position: absolute;
+    right: 24rpx;
+    bottom: 24rpx;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 8rpx 20rpx;
+    border-radius: 30rpx;
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    z-index: 2;
+    
+    text {
+      color: #fff;
+      font-size: 24rpx;
+      font-weight: 500;
     }
   }
 }
@@ -685,119 +827,199 @@ const goToPromotion = () => {
   display: flex;
   align-items: center;
   padding: 32rpx 40rpx;
-  background-color: #fff;
+  margin: 0 24rpx 24rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FAFAFA 100%);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.03);
   gap: 12rpx;
+  transition: all 0.3s ease;
+  
+  .address-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56rpx;
+    height: 56rpx;
+    background: linear-gradient(135deg, rgba(194, 157, 113, 0.15) 0%, rgba(194, 157, 113, 0.05) 100%);
+    border-radius: 50%;
+  }
   
   .address-text {
     flex: 1;
-    font-size: 34rpx;
-    color: #000;
-    font-weight: 600;
-    line-height: 1.4;
+    font-size: 28rpx;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  
+  .address-arrow {
+    display: flex;
+    align-items: center;
+    opacity: 0.6;
+    transition: all 0.3s ease;
   }
   
   &:active {
-    background-color: #f9f9f9;
+    background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
+    transform: scale(0.98);
+    
+    .address-arrow {
+      opacity: 1;
+      transform: translateX(4rpx);
+    }
   }
 }
 
 /* 预订卡片 */
 .booking-card {
-  margin: 24rpx;
-  padding: 48rpx 40rpx;
-  background-color: #fff;
+  margin: 0 24rpx 24rpx;
+  padding: 40rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FEFEFE 100%);
   border-radius: 32rpx;
-  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16rpx 48rpx rgba(194, 157, 113, 0.12);
+  border: 1rpx solid rgba(194, 157, 113, 0.08);
+  transition: all 0.3s ease;
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32rpx;
+    
+    .card-title {
+      font-size: 32rpx;
+      font-weight: 700;
+      color: #333;
+      letter-spacing: 0.5rpx;
+    }
+    
+    .edit-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48rpx;
+      height: 48rpx;
+      background: linear-gradient(135deg, rgba(194, 157, 113, 0.1) 0%, rgba(194, 157, 113, 0.05) 100%);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      
+      &:active {
+        transform: scale(0.9);
+      }
+    }
+  }
   
   .booking-dates {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 48rpx;
+    margin-bottom: 40rpx;
+    padding: 32rpx;
+    background: linear-gradient(135deg, rgba(194, 157, 113, 0.05) 0%, rgba(194, 157, 113, 0.02) 100%);
+    border-radius: 24rpx;
     
     .date-column {
       display: flex;
       flex-direction: column;
-      
-      &.right {
-        align-items: flex-end;
-        
-        .date-row {
-          justify-content: flex-end;
-        }
-      }
+      align-items: center;
+      gap: 8rpx;
       
       .label {
         font-size: 24rpx;
         color: #999;
-        margin-bottom: 12rpx;
+        font-weight: 500;
       }
       
       .date-row {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8rpx;
+        align-items: center;
+        gap: 4rpx;
         
         .date {
-          font-size: 52rpx;
-          font-weight: 600;
+          font-size: 48rpx;
+          font-weight: 700;
           color: #333;
-          font-family: Helvetica, Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
           line-height: 1;
-          letter-spacing: -1px;
         }
         
-        .week {
-          font-size: 24rpx;
-          color: #666;
+        .weekday {
+          font-size: 22rpx;
+          color: #999;
         }
-      }
-      
-      &.right .date-row {
-         align-items: flex-end;
       }
     }
     
-    .nights-badge-outline {
-      padding: 6rpx 20rpx;
-      border: 1px solid #eee;
-      border-radius: 100rpx;
+    .nights-badge {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 4rpx;
+      gap: 8rpx;
+      
+      .arrow-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       
       .count {
-        font-size: 24rpx;
+        font-size: 22rpx;
         color: #C29D71;
-        font-weight: 500;
+        font-weight: 600;
       }
     }
   }
   
   .search-wrapper {
-    margin-bottom: 48rpx;
-    padding: 24rpx 32rpx;
-    background-color: #f9f9f9;
+    margin-bottom: 40rpx;
+    padding: 28rpx 32rpx;
+    background: linear-gradient(135deg, #F8F8F8 0%, #FAFAFA 100%);
     border-radius: 100rpx;
     display: flex;
     align-items: center;
     gap: 16rpx;
+    transition: all 0.3s ease;
     
     .search-placeholder {
+      flex: 1;
       font-size: 28rpx;
-      color: #bbb;
+      color: #999;
+    }
+    
+    .search-arrow {
+      display: flex;
+      align-items: center;
+      opacity: 0.6;
+    }
+    
+    &:active {
+      background: linear-gradient(135deg, #F5F5F5 0%, #F8F8F8 100%);
+      transform: scale(0.98);
     }
   }
   
   .action-area {
     margin-bottom: 24rpx;
-    box-shadow: 0 20rpx 40rpx -10rpx rgba(194, 157, 113, 0.4);
+    box-shadow: 0 16rpx 32rpx rgba(194, 157, 113, 0.35);
     border-radius: 100rpx;
+    transition: all 0.3s ease;
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 12rpx 24rpx rgba(194, 157, 113, 0.25);
+    }
+    
+    .btn-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16rpx;
+    }
     
     .btn-text {
-      font-size: 34rpx;
-      font-weight: 600;
+      font-size: 36rpx;
+      font-weight: 700;
       letter-spacing: 2rpx;
     }
   }
@@ -806,9 +1028,15 @@ const goToPromotion = () => {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8rpx;
+    
+    .guarantee-icon {
+      display: flex;
+      align-items: center;
+    }
     
     text {
-      font-size: 24rpx;
+      font-size: 22rpx;
       color: #999;
     }
   }
@@ -817,54 +1045,93 @@ const goToPromotion = () => {
 /* 功能网格 */
 .feature-grid {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 0 24rpx;
-  gap: 20rpx;
+  gap: 16rpx;
   margin-bottom: 24rpx;
   
   .feature-card {
-    flex: 1;
-    background-color: #fff;
-    padding: 32rpx 24rpx;
-    border-radius: 20rpx;
+    position: relative;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FEFEFE 100%);
+    padding: 32rpx;
+    border-radius: 24rpx;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);
+    box-shadow: 0 8rpx 24rpx rgba(194, 157, 113, 0.08);
+    border: 1rpx solid rgba(194, 157, 113, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
     
-    .feature-text {
+    .feature-bg-icon {
+      position: absolute;
+      right: -10rpx;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.5;
+      z-index: 0;
+    }
+    
+    .feature-content {
+      flex: 1;
       display: flex;
-      flex-direction: column;
-      gap: 4rpx;
+      align-items: center;
+      gap: 20rpx;
+      z-index: 1;
+      
+      .feature-icon {
+        width: 72rpx;
+        height: 72rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        
+        &.cinema-icon {
+          background: linear-gradient(135deg, rgba(194, 157, 113, 0.15) 0%, rgba(194, 157, 113, 0.08) 100%);
+        }
+        
+        &.points-icon {
+          background: linear-gradient(135deg, rgba(194, 157, 113, 0.15) 0%, rgba(194, 157, 113, 0.08) 100%);
+        }
+        
+        &.vip-icon {
+          background: linear-gradient(135deg, rgba(194, 157, 113, 0.15) 0%, rgba(194, 157, 113, 0.08) 100%);
+        }
+      }
       
       .title {
-        font-size: 28rpx;
-        font-weight: 600;
+        font-size: 32rpx;
+        font-weight: 700;
         color: #333;
+        margin-bottom: 4rpx;
       }
       
       .desc {
-        font-size: 20rpx;
-        color: #ccc;
+        font-size: 22rpx;
+        color: #999;
       }
     }
     
-    .feature-icon {
-      width: 80rpx;
-      height: 80rpx;
-      border-radius: 50%;
+    .feature-arrow {
       display: flex;
       align-items: center;
       justify-content: center;
-      
-      &.cinema-icon { background-color: #FFF5F5; }
-      &.points-icon { background-color: #F0F9FF; }
-      &.vip-icon { background-color: #FFF8E1; }
+      width: 44rpx;
+      height: 44rpx;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 50%;
+      z-index: 1;
+      transition: all 0.3s ease;
     }
     
     &:active {
       transform: scale(0.98);
-      background-color: #fafafa;
+      background: linear-gradient(135deg, #FAFAFA 0%, #F8F8F8 100%);
+      
+      .feature-arrow {
+        background: rgba(0, 0, 0, 0.04);
+        transform: translateX(4rpx);
+      }
     }
   }
 }
@@ -872,21 +1139,30 @@ const goToPromotion = () => {
 /* 通告栏 */
 .notice-section {
   margin: 0 24rpx 24rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
+  
+  .notice-wrapper {
+    border-radius: 20rpx;
+    overflow: hidden;
+    box-shadow: 0 4rpx 16rpx rgba(230, 126, 34, 0.08);
+    
+    :deep(.tn-notice-bar) {
+      border-radius: 20rpx;
+    }
+  }
 }
-
 
 /* 促销横幅 */
 .promotion-banner {
-  margin: 32rpx 24rpx;
+  margin: 0 24rpx 32rpx;
   border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16rpx 48rpx rgba(194, 157, 113, 0.2);
   position: relative;
+  transition: all 0.3s ease;
   
   &:active {
     transform: scale(0.98);
+    box-shadow: 0 12rpx 36rpx rgba(194, 157, 113, 0.15);
   }
   
   .promotion-img {
@@ -894,27 +1170,182 @@ const goToPromotion = () => {
     height: 320rpx;
   }
   
-  .promotion-tag {
+  .promotion-overlay {
     position: absolute;
-    top: 20rpx;
-    left: 20rpx;
-    background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%);
-    color: #fff;
-    font-size: 22rpx;
-    padding: 8rpx 20rpx;
-    border-radius: 8rpx;
-    font-weight: 500;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+    z-index: 1;
+  }
+  
+  .promotion-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28rpx;
+    
+    .promotion-tag {
+      align-self: flex-start;
+      background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+      color: #fff;
+      padding: 10rpx 24rpx;
+      border-radius: 30rpx;
+      box-shadow: 0 8rpx 16rpx rgba(255, 107, 107, 0.3);
+      backdrop-filter: blur(10px);
+      
+      .tag-text {
+        font-size: 22rpx;
+        font-weight: 600;
+        letter-spacing: 1rpx;
+      }
+    }
+    
+    .promotion-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8rpx;
+      
+      .promotion-title {
+        font-size: 40rpx;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.3);
+        letter-spacing: 1rpx;
+      }
+      
+      .promotion-subtitle {
+        font-size: 26rpx;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+      }
+    }
   }
 }
 
 /* 底部占位 */
 .bottom-placeholder {
-  height: 60rpx;
+  height: 80rpx;
+}
+
+/* 全局动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 为各个模块添加入场动画 */
+.hotel-banner {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.address-section {
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.booking-card {
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.feature-grid {
+  .feature-card {
+    &:nth-child(1) {
+      animation: fadeInUp 0.6s ease-out 0.3s backwards;
+    }
+    &:nth-child(2) {
+      animation: fadeInUp 0.6s ease-out 0.4s backwards;
+    }
+    &:nth-child(3) {
+      animation: fadeInUp 0.6s ease-out 0.5s backwards;
+    }
+  }
+}
+
+.notice-section {
+  animation: fadeInUp 0.6s ease-out 0.6s backwards;
+}
+
+.promotion-banner {
+  animation: fadeInUp 0.6s ease-out 0.7s backwards;
+}
+
+/* 悬浮效果增强 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8rpx);
+  }
+}
+
+/* 为按钮添加渐变闪烁效果 */
+.action-area {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 70%
+    );
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
 }
 
 /* 日期弹窗样式重构 */
 .calendar-container {
-  background-color: #fff;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
   height: 80vh;
   
   .calendar-header {
@@ -923,14 +1354,16 @@ const goToPromotion = () => {
     justify-content: center;
     padding: 32rpx;
     position: relative;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1rpx solid rgba(194, 157, 113, 0.1);
     height: 100rpx;
     box-sizing: border-box;
+    background: #fff;
     
     .title {
-      font-size: 34rpx;
-      font-weight: 600;
+      font-size: 36rpx;
+      font-weight: 700;
       color: #333;
+      letter-spacing: 1rpx;
     }
     
     .close-btn {
@@ -939,12 +1372,26 @@ const goToPromotion = () => {
       top: 50%;
       transform: translateY(-50%);
       padding: 10rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56rpx;
+      height: 56rpx;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      
+      &:active {
+        background: rgba(0, 0, 0, 0.06);
+        transform: translateY(-50%) scale(0.9);
+      }
     }
   }
   
   .calendar-body {
     height: calc(80vh - 100rpx - 140rpx);
     overflow-y: auto;
+    background: #fff;
     
     .calendar-loading {
       display: flex;
@@ -990,14 +1437,24 @@ const goToPromotion = () => {
   }
   
   .calendar-footer {
-    padding: 24rpx 32rpx;
-    padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-    background-color: #fff;
-    border-top: 1px solid #f5f5f5;
+    padding: 28rpx 32rpx;
+    padding-bottom: calc(28rpx + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
+    border-top: 1rpx solid rgba(194, 157, 113, 0.1);
     height: 140rpx;
     box-sizing: border-box;
+    
+    :deep(.tn-button) {
+      box-shadow: 0 12rpx 24rpx rgba(194, 157, 113, 0.3);
+      
+      &:active {
+        transform: scale(0.98);
+      }
+    }
   }
 }
 </style>
+
+
 
 
