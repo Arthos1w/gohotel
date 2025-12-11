@@ -568,13 +568,40 @@ const checkLoginAndNavigate = (url) => {
 .function-card {
   margin: 0 24rpx 24rpx;
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, rgba(44, 44, 46, 0.95) 0%, rgba(28, 28, 30, 0.95) 100%);
-  backdrop-filter: blur(20rpx);
-  -webkit-backdrop-filter: blur(20rpx);
+  /* 背景色调整：加入微弱的紫红暖色调，模拟奢华感 */
+  background: linear-gradient(135deg, #2E2528 0%, #1B1B1E 100%);
   border-radius: 32rpx;
   box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
   animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  position: relative;
+  overflow: hidden;
+  
+  /* 底部纹饰 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      /* 组合纹饰：高密度细腻线条 */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 350' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g_left' x1='0%25' y1='100%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23E5CFA0' stop-opacity='0.15'/%3E%3Cstop offset='100%25' stop-color='%23E5CFA0' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='g_right' x1='100%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23E5CFA0' stop-opacity='0.15'/%3E%3Cstop offset='100%25' stop-color='%23E5CFA0' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- 左侧：发散束状线条 (更密更细) --%3E%3Cpath d='M-50 350 Q 150 175 350 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M-30 350 Q 170 175 370 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M-10 350 Q 190 175 390 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M10 350 Q 210 175 410 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M30 350 Q 230 175 430 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M50 350 Q 250 175 450 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M70 350 Q 270 175 470 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M90 350 Q 290 175 490 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M110 350 Q 310 175 510 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M130 350 Q 330 175 530 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M150 350 Q 350 175 550 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M170 350 Q 370 175 570 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M190 350 Q 390 175 590 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M210 350 Q 410 175 610 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M230 350 Q 430 175 630 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3Cpath d='M250 350 Q 450 175 650 0' stroke='url(%23g_left)' fill='none' stroke-width='0.6'/%3E%3C!-- 右侧：同心圆弧 (圆心在右下角) --%3E%3Ccircle cx='700' cy='350' r='100' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='140' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='180' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='220' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='260' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='300' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='340' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='380' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='420' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='460' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='500' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='540' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='580' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='620' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3Ccircle cx='700' cy='350' r='660' stroke='url(%23g_right)' fill='none' stroke-width='0.6'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    opacity: 1;
+    pointer-events: none;
+    z-index: 0;
+    animation: waveFlowComplex 8s ease-in-out infinite;
+  }
+  
+  /* 确保内容在纹饰之上 */
+  .function-row {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .function-row {
@@ -760,6 +787,15 @@ const checkLoginAndNavigate = (url) => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes waveFlowComplex {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
   }
 }
 </style>
