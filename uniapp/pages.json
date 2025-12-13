@@ -10,13 +10,15 @@
     {
       "path": "pages/hotel/hotel",
       "style": {
-        "navigationBarTitleText": "酒店"
+        "navigationBarTitleText": "酒店",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/service/service",
       "style": {
-        "navigationBarTitleText": "服务"
+        "navigationBarTitleText": "服务",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -58,6 +60,41 @@
       "path": "pages/points/points",
       "style": {
         "navigationBarTitleText": "我的积分",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/room-detail/room-detail",
+      "style": {
+        "navigationBarTitleText": "房间详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/booking/booking",
+      "style": {
+        "navigationBarTitleText": "确认订单",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/order-detail/order-detail",
+      "style": {
+        "navigationBarTitleText": "订单详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pay-result/pay-result",
+      "style": {
+        "navigationBarTitleText": "支付结果",
         "navigationStyle": "custom"
       }
     }
