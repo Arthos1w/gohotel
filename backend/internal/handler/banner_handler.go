@@ -212,44 +212,64 @@ func (h *BannerHandler) UpdateBanner(c *gin.Context) {
 	}
 
 	// 从表单中获取Banner信息
-	title := c.PostForm("title")
-	subtitle := c.PostForm("subtitle")
-	tempURL := c.PostForm("temp_url")
-	linkURL := c.PostForm("link_url")
-	sortStr := c.PostForm("sort")
-	startTime := c.PostForm("start_time")
-	endTime := c.PostForm("end_time")
+	title, hasTitle := c.GetPostForm("title")
+	subtitle, hasSubtitle := c.GetPostForm("subtitle")
+	tempURL, hasTempURL := c.GetPostForm("temp_url")
+	linkURL, hasLinkURL := c.GetPostForm("link_url")
+	sortStr, hasSort := c.GetPostForm("sort")
+	startTime, hasStartTime := c.GetPostForm("start_time")
+	endTime, hasEndTime := c.GetPostForm("end_time")
 
-	// 验证必要字段
-	if tempURL == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "临时图片URL不能为空"})
-		return
-	}
-
-	// 确认上传，获取正式URL
-	imageURL, err := h.cosService.ConfirmUpload(tempURL)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "确认图片上传失败: " + err.Error()})
-		return
+	imageURL := ""
+	if hasTempURL {
+		if tempURL == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "临时图片URL不能为空"})
+			return
+		}
+		// 确认上传，获取正式URL
+		imageURL, err = h.cosService.ConfirmUpload(tempURL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "确认图片上传失败: " + err.Error()})
+			return
+		}
 	}
 
 	// 解析sort字段
-	sort := 0
-	if sortStr != "" {
+	var sort *int
+	if hasSort && sortStr != "" {
 		if s, parseErr := strconv.Atoi(sortStr); parseErr == nil {
-			sort = s
+			sort = &s
 		}
+	}
+
+	var subtitlePtr *string
+	if hasSubtitle {
+		subtitlePtr = &subtitle
+	}
+	var linkURLPtr *string
+	if hasLinkURL {
+		linkURLPtr = &linkURL
+	}
+	var startTimePtr *string
+	if hasStartTime {
+		startTimePtr = &startTime
+	}
+	var endTimePtr *string
+	if hasEndTime {
+		endTimePtr = &endTime
 	}
 
 	// 构建请求对象
 	req := &service.UpdateBannerRequest{
-		Title:     title,
-		Subtitle:  &subtitle,
+		Subtitle:  subtitlePtr,
 		ImageURL:  imageURL,
-		LinkURL:   &linkURL,
+		LinkURL:   linkURLPtr,
 		Sort:      sort,
-		StartTime: &startTime,
-		EndTime:   &endTime,
+		StartTime: startTimePtr,
+		EndTime:   endTimePtr,
+	}
+	if hasTitle {
+		req.Title = title
 	}
 
 	// 调用服务层更新Banner

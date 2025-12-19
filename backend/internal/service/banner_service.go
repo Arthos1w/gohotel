@@ -104,7 +104,7 @@ type UpdateBannerRequest struct {
 	Subtitle  *string `json:"subtitle" binding:"omitempty,max=255"`
 	ImageURL  string  `json:"image_url" binding:"omitempty,max=500"`
 	LinkURL   *string `json:"link_url" binding:"omitempty,max=500"`
-	Sort      int     `json:"sort" binding:"omitempty,min=0"`
+	Sort      *int    `json:"sort" binding:"omitempty,min=0"`
 	StartTime *string `json:"start_time" binding:"omitempty"`
 	EndTime   *string `json:"end_time" binding:"omitempty"`
 }
@@ -201,8 +201,8 @@ func (s *BannerService) UpdateBanner(id int64, req *UpdateBannerRequest) (*model
 	if req.LinkURL != nil {
 		banner.LinkURL = req.LinkURL
 	}
-	if req.Sort != 0 {
-		banner.Sort = req.Sort
+	if req.Sort != nil {
+		banner.Sort = *req.Sort
 	}
 
 	// 更新时间字段
