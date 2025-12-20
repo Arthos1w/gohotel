@@ -123,6 +123,7 @@ func main() {
 	logRepo := repository.NewLogRepository(database.DB)
 	facilityRepo := repository.NewFacilityRepository(database.DB)
 	bannerRepo := repository.NewBannerRepository(database.DB)
+	noticeRepo := repository.NewNoticeRepository(database.DB)
 
 	// Service 层
 	userService := service.NewUserService(userRepo)
@@ -131,6 +132,7 @@ func main() {
 	logService := service.NewLogService(logRepo)
 	facilityService := service.NewFacilityService(facilityRepo)
 	bannerService := service.NewBannerService(bannerRepo, cosService, timeWheel)
+	noticeService := service.NewNoticeService(noticeRepo, cosService, timeWheel)
 
 	// 加载持久化的时间轮任务
 	fmt.Println("📂 正在加载时间轮任务...")
@@ -179,6 +181,7 @@ func main() {
 	logHandler := handler.NewLogHandler(logService)
 	facilityHandler := handler.NewFacilityHandler(facilityService)
 	bannerHandler := handler.NewBannerHandler(bannerService, cosService)
+	noticeHandler := handler.NewNoticeHandler(noticeService)
 	cosHandler := handler.NewCosHandler(cosService)
 
 	// 8. 设置 Gin 模式
@@ -193,7 +196,7 @@ func main() {
 	r.Use(middleware.LoggerMiddleware()) // 日志中间件
 
 	// 设置路由
-	setupRoutes(r, userHandler, roomHandler, bookingHandler, logHandler, facilityHandler, bannerHandler, cosHandler)
+	setupRoutes(r, userHandler, roomHandler, bookingHandler, logHandler, facilityHandler, bannerHandler, noticeHandler, cosHandler)
 
 	// 12. 启动服务器
 	fmt.Println("═══════════════════════════════════════════════")
@@ -210,7 +213,7 @@ func main() {
 }
 
 // setupRoutes 设置所有路由
-func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *handler.RoomHandler, bookingHandler *handler.BookingHandler, logHandler *handler.LogHandler, facilityHandler *handler.FacilityHandler, bannerHandler *handler.BannerHandler, cosHandler *handler.CosHandler) {
+func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *handler.RoomHandler, bookingHandler *handler.BookingHandler, logHandler *handler.LogHandler, facilityHandler *handler.FacilityHandler, bannerHandler *handler.BannerHandler, noticeHandler *handler.NoticeHandler, cosHandler *handler.CosHandler) {
 	// Swagger 文档路由
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -262,6 +265,11 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 		banners := api.Group("/banners")
 		{
 			banners.GET("/active", bannerHandler.GetActiveBanners) // 获取激活的活动横幅（前端展示用）
+		}
+		// 公告路由（公开查询）
+		notices := api.Group("/notices")
+		{
+			notices.GET("/active", noticeHandler.GetActiveNotices) // 获取激活的公告（前端展示用）
 		}
 		// 日志路由
 		logs := api.Group("/logs")
@@ -331,6 +339,13 @@ func setupRoutes(r *gin.Engine, userHandler *handler.UserHandler, roomHandler *h
 				admin.GET("/banners/:id", bannerHandler.GetBannerByID)        // 获取活动横幅详情
 				admin.POST("/banners/:id", bannerHandler.UpdateBanner)        // 更新活动横幅
 				admin.POST("/banners/:id/delete", bannerHandler.DeleteBanner) // 删除活动横幅
+
+				// 公告管理
+				admin.GET("/notices", noticeHandler.GetAllNotices)            // 获取所有公告
+				admin.POST("/notices", noticeHandler.CreateNotice)            // 创建公告
+				admin.GET("/notices/:id", noticeHandler.GetNoticeByID)        // 获取公告详情
+				admin.POST("/notices/:id", noticeHandler.UpdateNotice)        // 更新公告
+				admin.POST("/notices/:id/delete", noticeHandler.DeleteNotice) // 删除公告
 			}
 		}
 	}

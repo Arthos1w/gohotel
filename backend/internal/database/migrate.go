@@ -24,6 +24,7 @@ func AutoMigrate() error {
 		&models.Facility{},
 		&models.Log{},
 		&models.Banner{},
+		&models.Notice{},
 	)
 
 	if err != nil {

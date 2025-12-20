@@ -147,10 +147,27 @@ export async function postAdminBannersIdOpenApiDelete(
   });
 }
 
-/** 获取激活的活动横幅 获取激活状态的活动横幅，用于前端展示 GET /api/banners/active */
-export async function getBannersActive(options?: { [key: string]: any }) {
-  return request<API.Banner[]>("/api/banners/active", {
-    method: "GET",
+/** 删除活动横幅 删除指定ID的活动横幅 POST /api/admin/notices/${param0}/delete */
+export async function postAdminNoticesIdOpenApiDelete(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postAdminNoticesId_openAPI_deleteParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<Record<string, any>>(`/api/admin/notices/${param0}/delete`, {
+    method: "POST",
+    params: { ...queryParams },
     ...(options || {}),
   });
+}
+
+/** 获取激活的活动横幅 获取激活状态的活动横幅，用于前端展示 GET /api/banners/active */
+export async function getBannersActive(options?: { [key: string]: any }) {
+  return request<API.Response & { data?: API.Banner[] }>(
+    "/api/banners/active",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
 }

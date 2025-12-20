@@ -3,6 +3,7 @@
 // API 更新时间：
 // API 唯一标识：
 import * as fangjian from "./fangjian";
+import * as gonggaoguanli from "./gonggaoguanli";
 import * as guanliyuan from "./guanliyuan";
 import * as huodongguanli from "./huodongguanli";
 import * as renzheng from "./renzheng";
@@ -14,6 +15,7 @@ export default {
   huodongguanli,
   guanliyuan,
   rizhi,
+  gonggaoguanli,
   renzheng,
   yuding,
   fangjian,

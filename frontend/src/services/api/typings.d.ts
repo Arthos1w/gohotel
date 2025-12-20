@@ -156,6 +156,13 @@ declare namespace API {
     message?: string;
   };
 
+  type ErrorInfo = {
+    /** 错误代码 */
+    code?: string;
+    /** 错误消息 */
+    message?: string;
+  };
+
   type ErrorResponse = {
     error?: ErrorInfo;
     success?: boolean;
@@ -247,6 +254,18 @@ declare namespace API {
     page?: number;
     /** 每页数量 */
     page_size?: number;
+  };
+
+  type getAdminNoticesIdParams = {
+    /** 公告ID */
+    id: string;
+  };
+
+  type getAdminNoticesParams = {
+    /** 页码，默认1 */
+    page?: number;
+    /** 每页条数，默认10 */
+    pageSize?: number;
   };
 
   type getAdminUsersIdParams = {
@@ -341,6 +360,27 @@ declare namespace API {
     logs: LogEntry[];
   };
 
+  type Notice = {
+    /** 创建时间 */
+    created_at?: string;
+    /** 活动结束时间（可为空） */
+    end_time?: string;
+    /** 自增主键 */
+    id?: number;
+    /** 跳转链接（可为空） */
+    link_url?: string;
+    /** 排序，数字越小越靠前 */
+    sort?: number;
+    /** 活动开始时间（可为空） */
+    start_time?: string;
+    /** 状态：active, inactive */
+    status?: string;
+    /** 标题 */
+    title?: string;
+    /** 更新时间 */
+    updated_at?: string;
+  };
+
   type postAdminBannersId_openAPI_deleteParams = {
     /** 活动横幅ID */
     id: string;
@@ -376,6 +416,16 @@ declare namespace API {
     id: number;
   };
 
+  type postAdminNoticesId_openAPI_deleteParams = {
+    /** 公告ID */
+    id: string;
+  };
+
+  type postAdminNoticesIdParams = {
+    /** 公告ID */
+    id: string;
+  };
+
   type postBookingsIdCancelParams = {
     /** 预订 ID */
     id: number;
@@ -397,6 +447,17 @@ declare namespace API {
     phone?: string;
     real_name?: string;
     username: string;
+  };
+
+  type Response = {
+    /** 返回的数据 */
+    data?: any;
+    /** 错误信息 */
+    error?: ErrorInfo;
+    /** 提示消息 */
+    message?: string;
+    /** 是否成功 */
+    success?: boolean;
   };
 
   type Room = {

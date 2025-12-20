@@ -144,7 +144,6 @@ func (s *NoticeService) CreateNotice(req *CreateNoticeRequest) (*models.Notice, 
 
 	// 创建公告对象
 	notice := &models.Notice{
-		ID:        utils.JSONInt64(utils.GenID()),
 		Title:     req.Title,
 		LinkURL:   req.LinkURL,
 		Sort:      sort,

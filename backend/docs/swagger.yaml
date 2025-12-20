@@ -154,6 +154,36 @@ definitions:
         description: 宽度
         type: integer
     type: object
+  models.Notice:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      end_time:
+        description: 活动结束时间（可为空）
+        type: string
+      id:
+        description: 自增主键
+        type: integer
+      link_url:
+        description: 跳转链接（可为空）
+        type: string
+      sort:
+        description: 排序，数字越小越靠前
+        type: integer
+      start_time:
+        description: 活动开始时间（可为空）
+        type: string
+      status:
+        description: 状态：active, inactive
+        type: string
+      title:
+        description: 标题
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+    type: object
   models.Room:
     properties:
       area:
@@ -545,6 +575,30 @@ definitions:
         type: integer
       width:
         type: integer
+    type: object
+  utils.ErrorInfo:
+    properties:
+      code:
+        description: 错误代码
+        type: string
+      message:
+        description: 错误消息
+        type: string
+    type: object
+  utils.Response:
+    properties:
+      data:
+        description: 返回的数据
+      error:
+        allOf:
+        - $ref: '#/definitions/utils.ErrorInfo'
+        description: 错误信息
+      message:
+        description: 提示消息
+        type: string
+      success:
+        description: 是否成功
+        type: boolean
     type: object
 host: nas.yumi.chat:19999
 info:
@@ -1321,6 +1375,227 @@ paths:
       summary: 获取日志列表
       tags:
       - 日志
+  /api/admin/notices:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有公告，支持分页
+      parameters:
+      - description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认10
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 获取所有公告
+      tags:
+      - 公告管理
+    post:
+      consumes:
+      - multipart/form-data
+      description: 创建新的公告
+      parameters:
+      - description: 公告标题
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: 点击跳转链接
+        in: formData
+        name: link_url
+        type: string
+      - description: 展示顺序
+        in: formData
+        name: sort
+        type: integer
+      - description: 公告开始时间
+        in: formData
+        name: start_time
+        type: string
+      - description: 公告结束时间
+        in: formData
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Notice'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 创建公告
+      tags:
+      - 公告管理
+  /api/admin/notices/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取公告详情
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Notice'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 根据ID获取公告
+      tags:
+      - 公告管理
+    post:
+      consumes:
+      - multipart/form-data
+      description: 更新公告信息
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 公告标题
+        in: formData
+        name: title
+        type: string
+      - description: 点击跳转链接
+        in: formData
+        name: link_url
+        type: string
+      - description: 展示顺序
+        in: formData
+        name: sort
+        type: integer
+      - description: 公告开始时间
+        in: formData
+        name: start_time
+        type: string
+      - description: 公告结束时间
+        in: formData
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Notice'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 更新公告
+      tags:
+      - 公告管理
+  /api/admin/notices/{id}/delete:
+    post:
+      consumes:
+      - application/json
+      description: 删除指定ID的活动横幅
+      parameters:
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: 删除活动横幅
+      tags:
+      - 活动管理
   /api/admin/users:
     get:
       consumes:
@@ -1570,15 +1845,18 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.Banner'
-            type: array
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Banner'
+                  type: array
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utils.Response'
       summary: 获取激活的活动横幅
       tags:
       - 活动管理
@@ -1760,6 +2038,29 @@ paths:
       summary: 日志上报
       tags:
       - 日志
+  /api/notices/active:
+    get:
+      consumes:
+      - application/json
+      description: 获取激活状态的公告，用于前端展示
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Notice'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 获取激活的公告
+      tags:
+      - 公告管理
   /api/rooms:
     get:
       consumes:

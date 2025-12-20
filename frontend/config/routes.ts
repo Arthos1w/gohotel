@@ -39,6 +39,7 @@ export default [
   { name: '订单管理', icon: 'table', path: '/order-manage', component: './order-manage' },
   { name: '折扣管理', icon: 'table', path: '/discount-manage', component: './discount-manage' },
   { name: '活动管理', icon: 'table', path: '/activity-manage', component: './activity-manage' },
+  { name: '公告管理', icon: 'table', path: '/notice-manage', component: './notice-manage' },
   { name: '人员管理', icon: 'table', path: '/staff-manage', component: './staff-manage' },
   { name: '系统设置', icon: 'table', path: '/system-setting', component: './system-setting' },
   { path: '/', redirect: '/welcome' },
