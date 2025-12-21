@@ -5,6 +5,8 @@ import (
 	"gohotel/internal/repository"
 	"gohotel/pkg/errors"
 	"gohotel/pkg/utils"
+	"regexp"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -121,7 +123,25 @@ func (s *UserService) Register(req *RegisterRequest) (*models.User, error) {
 // Login 用户登录
 func (s *UserService) Login(req *LoginRequest) (*LoginResponse, error) {
 	// 1. 查找用户
-	user, err := s.userRepo.FindByUsername(req.Username)
+	account := strings.TrimSpace(req.Username)
+	if account == "" {
+		return nil, errors.NewUnauthorizedError("用户名或密码错误")
+	}
+
+	var (
+		user *models.User
+		err  error
+	)
+
+	// 允许使用 邮箱/手机号/用户名 登录
+	// 说明：这里返回统一的“用户名或密码错误”，避免暴露账号是否存在
+	if strings.Contains(account, "@") {
+		user, err = s.userRepo.FindByEmail(account)
+	} else if regexp.MustCompile(`^\d{6,20}$`).MatchString(account) {
+		user, err = s.userRepo.FindByPhone(account)
+	} else {
+		user, err = s.userRepo.FindByUsername(account)
+	}
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.NewUnauthorizedError("用户名或密码错误")
