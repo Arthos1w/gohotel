@@ -140,7 +140,7 @@ func (s *UserService) Login(req *LoginRequest) (*LoginResponse, error) {
 	}
 
 	// 4. 生成 JWT 令牌
-	token, err := utils.GenerateToken(user.ID.Int64(), user.Username)
+	token, err := utils.GenerateToken(user.ID.Int64(), user.Username, user.Role)
 	if err != nil {
 		return nil, errors.NewInternalServerError("生成令牌失败")
 	}

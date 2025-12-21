@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"gohotel/internal/config"
 	"time"
 
@@ -11,13 +12,14 @@ import (
 type Claims struct {
 	UserID   int64  `json:"user_id"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken 生成 JWT 令牌
-// 参数：用户ID、用户名
+// 参数：用户ID、用户名、角色
 // 返回：令牌字符串、错误
-func GenerateToken(userID int64, username string) (string, error) {
+func GenerateToken(userID int64, username string, role string) (string, error) {
 	// 设置过期时间
 	expirationTime := time.Now().Add(config.AppConfig.JWT.ExpireTime)
 
@@ -25,6 +27,7 @@ func GenerateToken(userID int64, username string) (string, error) {
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -50,6 +53,9 @@ func GenerateToken(userID int64, username string) (string, error) {
 func ParseToken(tokenString string) (*Claims, error) {
 	// 解析令牌
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return []byte(config.AppConfig.JWT.Secret), nil
 	})
 
@@ -64,20 +70,3 @@ func ParseToken(tokenString string) (*Claims, error) {
 
 	return nil, jwt.ErrSignatureInvalid
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

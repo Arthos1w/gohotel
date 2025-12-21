@@ -1,5 +1,6 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
+import { history } from '@umijs/max';
 import { message, notification } from 'antd';
 
 // 错误处理方案： 错误类型
@@ -17,6 +18,16 @@ interface ResponseStructure {
   errorCode?: number;
   errorMessage?: string;
   showType?: ErrorShowType;
+}
+
+interface BackendErrorResponse {
+	success?: boolean;
+	data?: any;
+	message?: string;
+	error?: {
+		code?: string;
+		message?: string;
+	};
 }
 
 /**
@@ -72,7 +83,30 @@ export const errorConfig: RequestConfig = {
       } else if (error.response) {
         // Axios 的错误
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
-        message.error(`Response status:${error.response.status}`);
+        const backendResp = error.response.data as BackendErrorResponse | undefined;
+        const backendMessage = backendResp?.error?.message || backendResp?.message;
+
+        if (error.response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          sessionStorage.removeItem('token');
+          message.error(backendMessage || '登录已过期，请重新登录');
+          history.push('/user/login');
+          window.location.reload();
+          return;
+        }
+
+		if (error.response.status === 403) {
+			message.error(backendMessage || '没有权限访问该资源');
+			return;
+		}
+
+		if (backendMessage) {
+			message.error(backendMessage);
+			return;
+		}
+
+		message.error(`Response status:${error.response.status}`);
       } else if (error.request) {
         // 请求已经成功发起，但没有收到响应
         // \`error.request\` 在浏览器中是 XMLHttpRequest 的实例，
@@ -91,11 +125,6 @@ export const errorConfig: RequestConfig = {
       // 从 localStorage 获取 token
       let token = localStorage.getItem('token') || sessionStorage.getItem('token');
       
-      // 开发环境：如果没有 token，使用临时 token（仅用于测试，生产环境应删除）
-      if (!token && process.env.NODE_ENV === 'development') {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFsaWNlIiwiaXNzIjoiZ29ob3RlbCIsImV4cCI6MTc2MzIzMzM4MSwiaWF0IjoxNzYzMTQ2OTgxfQ.ULazHgQK2eLo00SPR3X0pmEYCc1I6osHSBhXoSWWz8c';
-      }
-          
       // 如果有 token，添加到 Authorization header
       if (token) {
         config.headers = {
